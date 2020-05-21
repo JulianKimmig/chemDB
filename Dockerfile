@@ -88,6 +88,12 @@ ADD ./chemDB /home/appuser/app
 
 RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers mariadb-dev python3-dev
 
+RUN mkdir /opt/conda/envs/cq /opt/conda/pkgs && \
+    chgrp cq /opt/conda/pkgs && \
+    chmod g+w /opt/conda/pkgs && \
+    touch /opt/conda/pkgs/urls.txt && \
+    chown cq /opt/conda/envs/cq /opt/conda/pkgs/urls.txt
+
 USER appuser
 RUN conda env create --file environment.yml
 USER root
