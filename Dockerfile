@@ -107,7 +107,7 @@ EXPOSE 8000
 
 WORKDIR /home/appuser/app
 COPY ./entrypoint.sh /home/appuser/entrypoint.sh
-RUN chmod u+x /usr/local/bin/entrypoint.sh
+RUN chmod u+x /home/appuser/entrypoint.sh
 ENTRYPOINT [ "entrypoint.sh" ]
 #&&  exec gunicorn chemDB.wsgi:application --bind 0.0.0.0:8000 --workers 3
 #ENTRYPOINT ["conda", "run", "-n", $ENVNAME, "exec", "gunicorn", "chemDB.wsgi:application", "--bind","0.0.0.0:8000","--workers","3"]
