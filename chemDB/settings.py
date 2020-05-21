@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_extensions',#only in dev
-    'structure.apps.StructureConfig',
-    'substance.apps.SubstanceConfig',
-    'polymer.apps.PolymerConfig',
+    'sources.apps.SourcesConfig',
+    'rest_framework',
+    'guardian',
+    'experiments.apps.ExperimentsConfig',
+    'chemicaldb.apps.ChemicaldbConfig',
+    'chemicaldb_polymers.apps.ChemicaldbPolymersConfig',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +72,11 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # default
+    'guardian.backends.ObjectPermissionBackend',
+)
 
 WSGI_APPLICATION = 'chemDB.wsgi.application'
 
@@ -122,3 +129,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
+#import polydeep_base_server.common.settings
+#locals().update(
+#    polydeep_base_server.common.settings.apply(
+#        project_name = "chemDB",
+#    )
+#)
