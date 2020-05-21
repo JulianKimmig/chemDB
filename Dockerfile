@@ -87,7 +87,7 @@ RUN conda env create --file environment.yml
 RUN apk del .build-deps
 RUN apk add --no-cache mariadb-connector-c
 
-RUN useradd --create-home appuser
+RUN adduser -D -g '' appuser
 ADD ./chemDB /home/appuser/app
 WORKDIR /home/appuser/app
 USER appuser
