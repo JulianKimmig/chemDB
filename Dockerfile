@@ -82,15 +82,16 @@ RUN apk add py3-mysqlclient
 COPY ./environment.yml /environment.yml
 COPY ./requirements.txt /requirements.txt
 
-RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers mariadb-dev python3-dev
-RUN conda env create --file environment.yml
-RUN apk del .build-deps
-RUN apk add --no-cache mariadb-connector-c
 
 RUN adduser -D -g '' appuser
 ADD ./chemDB /home/appuser/app
 WORKDIR /home/appuser/app
 USER appuser
+
+RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers mariadb-dev python3-dev
+RUN conda env create --file environment.yml
+RUN apk del .build-deps
+RUN apk add --no-cache mariadb-connector-c
 
 EXPOSE 8000
 
