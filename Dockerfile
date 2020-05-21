@@ -84,7 +84,7 @@ COPY ./requirements.txt /requirements.txt
 
 
 #RUN adduser -D -g '' appuser
-ADD ./chemDB /home/appuser/app
+ADD ./chemDB /home/appuser/app/chemDB
 
 RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers mariadb-dev python3-dev
 
@@ -105,7 +105,7 @@ RUN apk add --no-cache mariadb-connector-c
 
 EXPOSE 8000
 
-WORKDIR /home/appuser/app
+WORKDIR /home/appuser/app/chemDB
 CMD conda run -n $ENVNAME exec gunicorn chemDB.wsgi:application --bind 0.0.0.0:8000 --workers 3
 #COPY ./entrypoint.sh /home/appuser/entrypoint.sh
 #RUN chmod u+x /home/appuser/entrypoint.sh
