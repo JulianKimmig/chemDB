@@ -7,8 +7,8 @@ services:
     ports:
       - "8001:8000"
     restart: always
-      environment:
-        MYSQL_USER: chem_db_user
-        MYSQL_PASSWORD: VMG$fJUGMGfQbCED9W49o
-        MYSQL_DATABASE: chem_db_user
+    environment:
+      MYSQL_USER: chem_db_user
+      MYSQL_PASSWORD: VMG$fJUGMGfQbCED9W49o
+      MYSQL_DATABASE: chem_db_user
     network_mode: "host"
