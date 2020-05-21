@@ -1,4 +1,4 @@
 #!/bin/bash
 echo "HELLO"
-#conda activate $ENVNAME
+conda activate $ENVNAME
 echo "BYE"
