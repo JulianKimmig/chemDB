@@ -86,12 +86,15 @@ COPY ./requirements.txt /requirements.txt
 RUN adduser -D -g '' appuser
 ADD ./chemDB /home/appuser/app
 WORKDIR /home/appuser/app
-USER appuser
 
 RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers mariadb-dev python3-dev
+
+USER appuser
 RUN conda env create --file environment.yml
+USER root
 RUN apk del .build-deps
 RUN apk add --no-cache mariadb-connector-c
+USER appuser
 
 EXPOSE 8000
 
