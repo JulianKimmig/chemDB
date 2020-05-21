@@ -1,6 +1,6 @@
 FROM frolvlad/alpine-miniconda3
 
-RUN apk add default-libmysqlclient-dev
+RUN apk add py-mysqldb
 
 COPY ./environment.yml /environment.yml
 COPY ./requirements.txt /requirements.txt
