@@ -1,1 +1,7 @@
+django
 django-guardian
+django-bootstrap4
+django-crispy-forms
+djangorestframework
+markdown       # Markdown support for the browsable API.
+django-filter  # Filtering support

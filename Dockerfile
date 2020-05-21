@@ -2,11 +2,11 @@ FROM frolvlad/alpine-miniconda3
 
 COPY ./environment.yml /environment.yml
 COPY ./requirements.txt /requirements.txt
-COPY ./chemDB /app
-
-ADD ./chemDB /usr/src/app
 
 RUN conda env create --file environment.yml
+RUN conda activate chemDB-env
+
+ADD ./chemDB /usr/src/app
 
 WORKDIR /usr/src/app
 EXPOSE 8000
