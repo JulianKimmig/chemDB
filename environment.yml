@@ -1,0 +1,11 @@
+name: chemDB-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.7
+  - pip
+  - gunicorn
+  -rdkit
+  - pip:
+      - -r file:requirements.txt

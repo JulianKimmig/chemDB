@@ -1,6 +1,6 @@
 from django.db import models
 
-from experiments.models import Experiment, ExperimentDataXY
+from chemDB.experiments import Experiment, ExperimentDataXY
 
 
 class Nmr(Experiment):

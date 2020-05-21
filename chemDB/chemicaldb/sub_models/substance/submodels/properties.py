@@ -1,6 +1,6 @@
 from django.db import models
 
-from sources.models import Source
+from chemDB.sources import Source
 from ..models import Substance
 
 

@@ -2,9 +2,7 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
-import experiments.models
 
 
 class Migration(migrations.Migration):
@@ -26,7 +24,7 @@ class Migration(migrations.Migration):
                 ('run_date', models.DateTimeField(blank=True, default=django.utils.timezone.now)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('raw_data', models.FileField(upload_to=experiments.models.upload_to_experiment)),
+                ('raw_data', models.FileField(upload_to=_chemDB.experiments.models.upload_to_experiment)),
                 ('owner', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),

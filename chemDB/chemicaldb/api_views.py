@@ -1,10 +1,6 @@
-import json
-
-from django.http import HttpResponse
-
 from rest_framework import routers, serializers, viewsets
 
-from chemicaldb.models import Structure
+from chemDB.chemicaldb.models import Structure
 
 
 class StructureSerializer(serializers.HyperlinkedModelSerializer):
