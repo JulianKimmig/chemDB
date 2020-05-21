@@ -83,25 +83,25 @@ COPY ./environment.yml /environment.yml
 COPY ./requirements.txt /requirements.txt
 
 
-RUN adduser -D -g '' appuser
+#RUN adduser -D -g '' appuser
 ADD ./chemDB /home/appuser/app
 
 RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers mariadb-dev python3-dev
 
 ENV ENVNAME=chemDB-env
 
-RUN mkdir /opt/conda/envs/$ENVNAME /opt/conda/pkgs && \
-    chgrp appuser /opt/conda/pkgs && \
-    chmod g+w /opt/conda/pkgs && \
-    touch /opt/conda/pkgs/urls.txt && \
-    chown appuser /opt/conda/envs/$ENVNAME /opt/conda/pkgs/urls.txt
+#RUN mkdir /opt/conda/envs/$ENVNAME /opt/conda/pkgs && \
+#    chgrp appuser /opt/conda/pkgs && \
+#    chmod g+w /opt/conda/pkgs && \
+#    touch /opt/conda/pkgs/urls.txt && \
+#    chown appuser /opt/conda/envs/$ENVNAME /opt/conda/pkgs/urls.txt
 
-USER appuser
+#USER appuser
 RUN conda env create -n $ENVNAME --file environment.yml
-USER root
+#USER root
 RUN apk del .build-deps
 RUN apk add --no-cache mariadb-connector-c
-USER appuser
+#USER appuser
 
 EXPOSE 8000
 
