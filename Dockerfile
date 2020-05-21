@@ -88,14 +88,16 @@ ADD ./chemDB /home/appuser/app
 
 RUN apk add --no-cache --virtual .build-deps gcc libc-dev linux-headers mariadb-dev python3-dev
 
-RUN mkdir /opt/conda/envs/cq /opt/conda/pkgs && \
-    chgrp cq /opt/conda/pkgs && \
+ENV ENVNAME=chemDB-env
+
+RUN mkdir /opt/conda/envs/$ENVNAME /opt/conda/pkgs && \
+    chgrp appuser /opt/conda/pkgs && \
     chmod g+w /opt/conda/pkgs && \
     touch /opt/conda/pkgs/urls.txt && \
-    chown cq /opt/conda/envs/cq /opt/conda/pkgs/urls.txt
+    chown appuser /opt/conda/envs/$ENVNAME /opt/conda/pkgs/urls.txt
 
 USER appuser
-RUN conda env create --file environment.yml
+RUN conda env create -n $ENVNAME --file environment.yml
 USER root
 RUN apk del .build-deps
 RUN apk add --no-cache mariadb-connector-c
@@ -104,4 +106,4 @@ USER appuser
 EXPOSE 8000
 
 WORKDIR /home/appuser/app
-ENTRYPOINT ["conda", "run", "-n", "chemDB-env", "exec", "gunicorn", "chemDB.wsgi:application", "--bind","0.0.0.0:8000","--workers","3"]
+ENTRYPOINT ["conda", "run", "-n", "$ENVNAME", "exec", "gunicorn", "chemDB.wsgi:application", "--bind","0.0.0.0:8000","--workers","3"]
