@@ -106,4 +106,6 @@ RUN apk add --no-cache mariadb-connector-c
 EXPOSE 8000
 
 WORKDIR /home/appuser/app
-ENTRYPOINT ["conda", "run", "-n", $ENVNAME, "exec", "gunicorn", "chemDB.wsgi:application", "--bind","0.0.0.0:8000","--workers","3"]
+RUN echo "source activate "$ENVNAME > ~/.bashrc
+CMD exec gunicorn chemDB.wsgi:application --bind 0.0.0.0:8000 --workers 3
+#ENTRYPOINT ["conda", "run", "-n", $ENVNAME, "exec", "gunicorn", "chemDB.wsgi:application", "--bind","0.0.0.0:8000","--workers","3"]
