@@ -1,4 +1,6 @@
 django
+mysqlclient # mysql support
+
 django-guardian
 django-bootstrap4
 django-crispy-forms
