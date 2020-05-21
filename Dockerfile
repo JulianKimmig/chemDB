@@ -77,7 +77,7 @@ RUN echo "**** install dev packages ****" && \
 
 
 
-RUN apk add py-mysqldb
+RUN apk add py3-mysqlclient
 
 COPY ./environment.yml /environment.yml
 COPY ./requirements.txt /requirements.txt
