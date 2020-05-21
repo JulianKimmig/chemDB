@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-from chemDB.experiments import Experiment
+from chemDB.experiments.models import Experiment
 
 
 class Source(models.Model):
