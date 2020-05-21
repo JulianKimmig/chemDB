@@ -5,11 +5,10 @@ COPY ./requirements.txt /requirements.txt
 COPY ./chemDB /app
 
 ADD ./chemDB /usr/src/app
-WORKDIR /usr/src/app
-
-# Expose ports
-EXPOSE 8000
 
 RUN conda env create --file environment.yml
+
+WORKDIR /usr/src/app
+EXPOSE 8000
 
 CMD exec gunicorn chemDB.wsgi:application --bind 0.0.0.0:8000 --workers 3
