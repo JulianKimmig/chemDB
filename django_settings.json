@@ -12,8 +12,11 @@
             }
         },
         "DEBUG": false,
+        "FORCE_SCRIPT_NAME": null,
         "LANGUAGE_CODE": "en-us",
         "SECRET_KEY": "^y%=mp*5(qx_$0+re2t&b$$5vjxcw+31v^b5@%^f+_#j^1ro()",
+        "STATIC_ROOT": "/static",
+        "STATIC_URL": "/chemdb_static/",
         "TIME_ZONE": "UTC",
         "USE_I18N": true,
         "USE_L10N": true,

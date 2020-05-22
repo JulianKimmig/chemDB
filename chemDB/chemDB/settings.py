@@ -22,9 +22,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-config = JsonDict("/django_settings.json")
-
-
+if os.path.exists("/django_settings.json"):
+    config = JsonDict("/django_settings.json")
+else:
+    config = JsonDict("django_settings.json")
 
 
 SECRET_KEY = config.get('base_settings','SECRET_KEY',default="".join([random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(50)]))

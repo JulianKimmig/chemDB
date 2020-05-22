@@ -90,4 +90,6 @@ venv.bak/
 /site
 .mypy_cache/
 /upload_to_pypi.py
-!/django_settings.json
+
+*/django_settings.json*
+
