@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
@@ -26,7 +25,6 @@ SECRET_KEY = 'l5!r&kcwz5r+#%**eq8j*6p-6@nw&0h)1uf&9c^27sw)9_s^-='
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -78,12 +76,11 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend', # default
+    'django.contrib.auth.backends.ModelBackend',  # default
     'guardian.backends.ObjectPermissionBackend',
 )
 
 WSGI_APPLICATION = 'chemDB.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -92,11 +89,11 @@ try:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME':  os.environ['MYSQL_DATABASE'],
-            'USER':  os.environ['MYSQL_USER'],
+            'NAME': os.environ['MYSQL_DATABASE'],
+            'USER': os.environ['MYSQL_USER'],
             'PASSWORD': os.environ['MYSQL_PASSWORD'],
-            'HOST': '127.0.0.1',
-            'PORT': '3306',
+            'HOST': os.environ.get('MYSQL_HOST', default="127.0.0.1"),
+            'PORT': os.environ.get('MYSQL_PORT', default="3306"),
         }
     }
     print("BBBBBBBBB")
@@ -120,7 +117,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -133,7 +129,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -148,9 +143,9 @@ REST_FRAMEWORK = {
     ]
 }
 
-#import polydeep_base_server.common.settings
-#locals().update(
+# import polydeep_base_server.common.settings
+# locals().update(
 #    polydeep_base_server.common.settings.apply(
 #        project_name = "chemDB",
 #    )
-#)
+# )

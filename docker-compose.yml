@@ -18,6 +18,7 @@ services:
       MYSQL_USER: 'chem_db_user'
       MYSQL_PASSWORD: "VMG_fJUGMGfQbCED9W49o"
       MYSQL_DATABASE: 'chem_db_user'
+      MYSQL_PORT: '172.23.33.2'
     network_mode: "host"
     #depends_on:
      # - db
