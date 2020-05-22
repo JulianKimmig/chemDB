@@ -106,7 +106,7 @@ DATABASES = {
         'USER': 'root',
         'PASSWORD': 'password',
         'HOST': 'db',
-        'PORT': 3306,
+        'PORT': 3307,
     }
 }
 print(DATABASES)
