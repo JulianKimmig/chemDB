@@ -8,6 +8,7 @@ services:
       - "8101:8000"
     volumes:
       - ./django_settings.json:/django_settings.json
+      -  ./static:/static
       - ./chemDB:/home/appuser/app/chemDB # dev only
       - ./requirements.txt:/requirements.txt  # dev only
       - ./docker-entrypoint.sh:/docker-entrypoint.sh  # dev only

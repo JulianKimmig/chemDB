@@ -142,6 +142,8 @@ USE_TZ = config.get('base_settings','USE_TZ',default=True)
 
 STATIC_URL = config.get('base_settings','STATIC_URL',default='/chemdb_static/')
 
+STATIC_ROOT = config.get('base_settings','STATIC_ROOT',default='/static')
+
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
