@@ -7,8 +7,10 @@ services:
     ports:
       - "8101:8000"
     volumes:
-      - ./chemDB:/home/appuser/app/chemDB
-      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+      - ./django_settings.json:/django_settings.json
+      - ./chemDB:/home/appuser/app/chemDB # dev only
+      - ./requirements.txt:/requirements.txt  # dev only
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh  # dev only
 #    command: tail -f /dev/null
     command: sh /docker-entrypoint.sh
     restart: always

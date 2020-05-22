@@ -110,6 +110,7 @@ ENV PATH /opt/conda/envs/$ENVNAME/bin:$PATH
 RUN /bin/sh -c "source activate "$ENVNAME
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+COPY ./django_settings.json /django_settings.json
 RUN chmod +x /docker-entrypoint.sh
 #CMD conda run -n $ENVNAME exec python --version
 #CMD conda run -n $ENVNAME exec python manage.py runserver 0.0.0.0:8000

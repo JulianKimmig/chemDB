@@ -8,3 +8,5 @@ django-crispy-forms
 djangorestframework
 markdown       # Markdown support for the browsable API.
 django-filter  # Filtering support
+
+Json-Dict

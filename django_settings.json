@@ -1,0 +1,22 @@
+{
+    "base_settings": {
+        "ALLOWED_HOSTS": [],
+        "DATABASES": {
+            "default": {
+                "ENGINE": "django.db.backends.mysql",
+                "HOST": "172.27.33.2",
+                "NAME": "chem_db_user",
+                "PASSWORD": "VMG_fJUGMGfQbCED9W49o",
+                "PORT": "3306",
+                "USER": "chem_db_user"
+            }
+        },
+        "DEBUG": false,
+        "LANGUAGE_CODE": "en-us",
+        "SECRET_KEY": "^y%=mp*5(qx_$0+re2t&b$$5vjxcw+31v^b5@%^f+_#j^1ro()",
+        "TIME_ZONE": "UTC",
+        "USE_I18N": true,
+        "USE_L10N": true,
+        "USE_TZ": true
+    }
+}

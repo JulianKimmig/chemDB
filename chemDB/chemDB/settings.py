@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+from json_dict import JsonDict
+import random
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,13 +21,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'l5!r&kcwz5r+#%**eq8j*6p-6@nw&0h)1uf&9c^27sw)9_s^-='
+
+config = JsonDict("/django_settings.json")
+
+
+
+
+SECRET_KEY = config.get('base_settings','SECRET_KEY',default="".join([random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(50)]))
+#'l5!r&kcwz5r+#%**eq8j*6p-6@nw&0h)1uf&9c^27sw)9_s^-='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config.get('base_settings','DEBUG',default=False)
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = config.get('base_settings','ALLOWED_HOSTS',default=[])
 # Application definition
 
 INSTALLED_APPS = [
@@ -86,7 +94,7 @@ WSGI_APPLICATION = 'chemDB.wsgi.application'
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 try:
-    DATABASES = {
+    DATABASES = config.get('base_settings','DATABASES',default = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': os.environ['MYSQL_DATABASE'],
@@ -95,8 +103,7 @@ try:
             'HOST': os.environ.get('MYSQL_HOST', default="127.0.0.1"),
             'PORT': os.environ.get('MYSQL_PORT', default="3306"),
         }
-    }
-    print("BBBBBBBBB")
+    })
 except:
     pass
 # Password validation
@@ -120,15 +127,15 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = config.get('base_settings','LANGUAGE_CODE',default='en-us')
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = config.get('base_settings','TIME_ZONE',default='UTC')
 
-USE_I18N = True
+USE_I18N = config.get('base_settings','USE_I18N',default=True)
 
-USE_L10N = True
+USE_L10N = config.get('base_settings','USE_L10N',default=True)
 
-USE_TZ = True
+USE_TZ = config.get('base_settings','USE_TZ',default=True)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
