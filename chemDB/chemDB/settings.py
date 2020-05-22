@@ -140,7 +140,7 @@ USE_TZ = config.get('base_settings','USE_TZ',default=True)
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = config.get('base_settings','STATIC_URL',default='/chemdb/static/')
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
