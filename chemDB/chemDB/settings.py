@@ -88,29 +88,20 @@ WSGI_APPLICATION = 'chemDB.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME':  os.environ['MYSQL_DATABASE'],
-        'USER':  os.environ['MYSQL_USER'],
-        'PASSWORD': os.environ['MYSQL_PASSWORD'],
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+try:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME':  os.environ['MYSQL_DATABASE'],
+            'USER':  os.environ['MYSQL_USER'],
+            'PASSWORD': os.environ['MYSQL_PASSWORD'],
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+        }
     }
-}
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my-app-db',
-        'USER': 'root',
-        'PASSWORD': 'password',
-        'HOST': 'db',
-        'PORT': 3307,
-    }
-}
-print(DATABASES)
-
+    print("BBBBBBBBB")
+except:
+    pass
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 

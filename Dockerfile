@@ -106,8 +106,11 @@ RUN apk add --no-cache mariadb-connector-c
 EXPOSE 8000
 
 WORKDIR /home/appuser/app/chemDB
+ENV PATH /opt/conda/envs/$ENVNAME/bin:$PATH
+RUN /bin/sh -c "source activate "$ENVNAME
+
 #CMD conda run -n $ENVNAME exec python --version
-CMD conda run -n $ENVNAME exec python manage.py runserver 0.0.0.0:8000
+#CMD conda run -n $ENVNAME exec python manage.py runserver 0.0.0.0:8000
 #CMD conda run -n $ENVNAME exec gunicorn chemDB.wsgi:application --bind 0.0.0.0:8000 --workers 3
 #COPY ./entrypoint.sh /home/appuser/entrypoint.sh
 #RUN chmod u+x /home/appuser/entrypoint.sh
