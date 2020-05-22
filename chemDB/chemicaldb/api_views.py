@@ -1,3 +1,5 @@
+import itertools
+
 from rest_framework import routers, serializers, viewsets
 
 from chemicaldb.models import Structure
@@ -30,8 +32,8 @@ class SearchModel:
         SearchModel.models_by_weight[weight].append(self)
 
 
-class SearchViewSet(viewsets.ListAPIView):
-    def list(self, request):
-        queryset = list(itertools.chain(Tweet.objects.all(), Article.objects.all()))
-        serializer = TimelineSerializer(queryset, many=True)
-        return Response(serializer.data)
+#class SearchViewSet(viewsets.ListAPIView):
+#    def list(self, request):
+#        queryset = list(itertools.chain(Tweet.objects.all(), Article.objects.all()))
+#        serializer = TimelineSerializer(queryset, many=True)
+#        return Response(serializer.data)
