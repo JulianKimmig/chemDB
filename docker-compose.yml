@@ -23,6 +23,6 @@ services:
       MYSQL_USER: 'chem_db_user'
       MYSQL_PASSWORD: "VMG$$fJUGMGfQbCED9W49o"#VMG$fJUGMGfQbCED9W49o
       MYSQL_DATABASE: 'chem_db_user'
-    network_mode: "host"
+    #network_mode: "host"
     depends_on:
       - db
