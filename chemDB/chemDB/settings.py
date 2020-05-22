@@ -142,6 +142,8 @@ USE_TZ = config.get('base_settings','USE_TZ',default=True)
 
 STATIC_URL = config.get('base_settings','STATIC_URL',default='/chemdb_static/')
 
+FORCE_SCRIPT_NAME = config.get('base_settings','FORCE_SCRIPT_NAME',default=None)
+
 STATIC_ROOT = config.get('base_settings','STATIC_ROOT',default='/static')
 
 REST_FRAMEWORK = {
