@@ -1,6 +1,8 @@
 from django.db import models
 
 # Create your models here.
+import chemDB
+print(chemDB)
 from chemDB.experiments.models import Experiment
 
 

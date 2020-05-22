@@ -37,11 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sources.apps.SourcesConfig',
+
     'rest_framework',
     'guardian',
-    'experiments.apps.ExperimentsConfig',
+
     'chemicaldb.apps.ChemicaldbConfig',
+
+    'experiments.apps.ExperimentsConfig',
+    'sources.apps.SourcesConfig',
+
     'chemicaldb_polymers.apps.ChemicaldbPolymersConfig',
 ]
 
