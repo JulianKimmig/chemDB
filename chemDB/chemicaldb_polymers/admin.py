@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from chemDB.chemicaldb_polymers import Polymer, PolymerStructure
+from chemicaldb_polymers.models import Polymer, PolymerStructure
 
 for model in [Polymer,
               PolymerStructure,

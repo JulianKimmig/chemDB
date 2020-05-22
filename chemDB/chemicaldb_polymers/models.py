@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-from chemDB.chemicaldb.models import Structure, Substance
+from chemicaldb.models import Structure, Substance
 
 
 class PolymerStructureType(models.TextChoices):

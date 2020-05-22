@@ -1,6 +1,6 @@
 from rest_framework import routers, serializers, viewsets
 
-from chemDB.chemicaldb.models import Structure
+from chemicaldb.models import Structure
 
 
 class StructureSerializer(serializers.HyperlinkedModelSerializer):

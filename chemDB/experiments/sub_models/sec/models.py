@@ -1,6 +1,6 @@
 from django.db import models
 
-from chemDB.experiments import Experiment, ExperimentDataXY
+from experiments.models import Experiment, ExperimentDataXY
 
 
 class SECTypeAdditives(models.Model):
