@@ -5,20 +5,18 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8009:8000"
+      - "8101:8000"
     volumes:
       - ./chemDB:/home/appuser/app/chemDB
-    command: tail -f /dev/null
-#    command: >
-#      sh -c "python manage.py migrate &&
-#             python manage.py runserver 0.0.0.0:8000 &&
-#             python"
+      - ./docker-entrypoint.sh:/docker-entrypoint.sh
+#    command: tail -f /dev/null
+    command: sh /docker-entrypoint.sh
     restart: always
     environment:
       MYSQL_USER: 'chem_db_user'
       MYSQL_PASSWORD: "VMG_fJUGMGfQbCED9W49o"
       MYSQL_DATABASE: 'chem_db_user'
-      MYSQL_HOST: '172.23.33.2'
-    network_mode: "host"
+      MYSQL_HOST: '172.27.33.2'
+    #network_mode: "host"
     #depends_on:
      # - db
