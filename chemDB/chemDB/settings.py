@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'guardian',
+    'crispy_forms',
 
     'chemicaldb.apps.ChemicaldbConfig',
 
