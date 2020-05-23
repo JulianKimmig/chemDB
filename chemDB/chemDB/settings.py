@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'sources.apps.SourcesConfig',
 
     'chemicaldb_polymers.apps.ChemicaldbPolymersConfig',
+
+    'experiments_nanoparticle.apps.ExperimentsNanoparticleConfig',
 ]
 
 MIDDLEWARE = [
@@ -106,7 +108,14 @@ try:
         }
     })
 except:
-    pass
+    DATABASES = config.get('base_settings','DATABASES',default = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    })
+
+print(DATABASES)
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 

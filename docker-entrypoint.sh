@@ -5,7 +5,7 @@
 #python manage.py collectstatic --noinput
 
 # ony in development
-  pip install -r /requirements.txt
+  pip install --upgrade -r /requirements.txt
   # Apply database migrations
   echo "Apply database migrations"
   python manage.py migrate

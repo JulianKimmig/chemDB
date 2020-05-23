@@ -1,0 +1,12 @@
+{% extends 'chemicaldb/base.html' %}
+{% block content_title %}
+    Login
+{% endblock %}
+
+{% block content %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
+{% endblock %}

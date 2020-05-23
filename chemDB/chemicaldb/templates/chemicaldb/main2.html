@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChemDB</title>
+</head>
+<body>
+Huhu
+<form id="search" method="POST" action="{% url 'chemicaldb:search' %}">
+    {% csrf_token %}
+    <input type="text" class="form-control" id="txtSearch" name="txtSearch">
+    <button type="submit" class="btn btn-default btn-submit">Submit</button>
+</form>
+
+<script>
+    $(document).ready(function(){
+        $("#txtSearch").autocomplete({
+            source: "{% url 'chemicaldb:api/search' %}",
+            minLength: 2,
+            open: function(){
+                setTimeout(function () {
+                    $('.ui-autocomplete').css('z-index', 99);
+                }, 0);
+            }
+        });        });</script>
+
+</body>
+</html>
