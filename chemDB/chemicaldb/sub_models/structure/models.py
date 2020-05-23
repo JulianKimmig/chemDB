@@ -7,18 +7,71 @@ from rdkit import Chem
 import rdkit.Chem.Descriptors as rdk_descriptors
 
 
+def _validate_structure_identifiers(structure):
+    mol = structure.get_mol()
+    if mol is None:
+        return False
+    valid = True
+
+    smiles = rdkit.Chem.MolToSmiles(mol, isomericSmiles=True)
+    if structure.iso_smiles:
+        if structure.iso_smiles != smiles:
+            valid = False
+    else:
+        structure.iso_smiles = smiles
+
+    inchi = rdkit.Chem.MolToInchi(mol)
+    if structure.standard_inchi:
+        if structure.standard_inchi != inchi:
+            valid = False
+    else:
+        structure.standard_inchi = inchi
+
+    ikey = rdkit.Chem.MolToInchiKey(mol)
+    if structure.inchi_key:
+        if structure.inchi_key != ikey:
+            valid = False
+    else:
+        structure.inchi_key = ikey
+    return valid
+
+
+def _validate_structure_mass(structure):
+    mol = structure.get_mol()
+    if mol is None:
+        return False
+    valid = True
+
+    mass = rdk_descriptors.MolWt(mol)
+    if structure.molar_mass:
+        if structure.molar_mass != mass:
+            valid = False
+    else:
+        structure.molar_mass = mass
+
+    return valid
+
+
+def _validate_structure_mol(structure):
+    return structure.get_mol() is not None
+
+
+VALIDATION_HAS_MOL = "structure_has_mol", _validate_structure_mol
+VALIDATION_IDENTIFIER = "structure_identifiers", _validate_structure_identifiers
+VALIDATION_MASS = "structure_mass", _validate_structure_mass
+
+
 class Structure(models.Model):
     class Meta:
         permissions = (
             ('add structure', 'Add Structure'),
         )
 
-
     iso_smiles = models.CharField(max_length=200, null=True, blank=True)
     standard_inchi = models.TextField(null=True, blank=True)
     inchi_key = models.CharField(max_length=27, null=True, blank=True)
     molar_mass = models.FloatField(null=True, blank=True, )
-    valid = models.BooleanField(default=True, )
+    valid = models.BooleanField(default=True, editable=False)
 
     # external references
     cas_number = models.CharField(max_length=12, unique=True, null=True, blank=True)
@@ -27,6 +80,11 @@ class Structure(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mol = None
+        self.validity_checks = {
+            VALIDATION_HAS_MOL[0]: VALIDATION_HAS_MOL[1],
+            VALIDATION_IDENTIFIER[0]: VALIDATION_IDENTIFIER[1],
+            VALIDATION_MASS[0]: VALIDATION_MASS[1],
+        }
 
     def get_mol(self):
         if self.mol is None:
@@ -36,56 +94,12 @@ class Structure(models.Model):
                 self.mol = rdkit.Chem.MolFromSmiles(self.iso_smiles)
         return self.mol
 
-    def _validate_structure_identifiers(self, mol):
-        if mol is None:
-            return False
-        valid = True
-
-        smiles = rdkit.Chem.MolToSmiles(mol, isomericSmiles=True)
-        if self.iso_smiles:
-            if self.iso_smiles != smiles:
-                valid = False
-        else:
-            self.iso_smiles = smiles
-
-        inchi = rdkit.Chem.MolToInchi(mol)
-        if self.standard_inchi:
-            if self.standard_inchi != inchi:
-                valid = False
-        else:
-            self.standard_inchi = inchi
-
-        ikey = rdkit.Chem.MolToInchiKey(mol)
-        if self.inchi_key:
-            if self.inchi_key != ikey:
-                valid = False
-        else:
-            self.inchi_key = ikey
-        return valid
-
-    def _validate_properties(self, mol):
-        if mol is None:
-            return False
-        valid = True
-
-        mass = rdk_descriptors.MolWt(mol)
-        if self.molar_mass:
-            if self.molar_mass != mass:
-                valid = False
-        else:
-            self.molar_mass = mass
-
-        return valid
-
     def validate(self, save=True):
-        mol = self.get_mol()
         valid = True
-        if mol is None:
-            valid = False
-        else:
-            valid = valid and self._validate_structure_identifiers(mol)
-            valid = valid and self._validate_properties(mol)
-
+        for check_name, check in self.validity_checks.items():
+            valid = valid and check(self)
+            if not valid:
+                break
         if self.valid != valid:
             self.valid = valid
             if save:
@@ -97,11 +111,11 @@ class Structure(models.Model):
 
         if self.cas_number:
             if name:
-                return "{} ({})".format(self.cas_number,name)
+                return "{} ({})".format(self.cas_number, name)
             return self.cas_number
         if self.iso_smiles:
             if name:
-                return "{} ({})".format(self.iso_smiles,name)
+                return "{} ({})".format(self.iso_smiles, name)
             return self.iso_smiles
         return super().__str__()
 
@@ -113,14 +127,12 @@ def my_callback(sender, instance: Structure, *args, **kwargs):
     instance.validate(save=False)
 
 
-
 class StructureName(models.Model):
-    structure = models.ForeignKey(Structure, on_delete=models.CASCADE,related_name="names")
+    structure = models.ForeignKey(Structure, on_delete=models.CASCADE, related_name="names")
     name = models.CharField(max_length=200)
 
     def __str__(self):
         return self.name
-
 
 
 from .submodels import *

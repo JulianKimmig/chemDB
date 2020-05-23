@@ -1,10 +1,8 @@
-import itertools
-
-from rest_framework import routers, serializers, viewsets, generics
+from rest_framework import routers, serializers, viewsets
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from chemicaldb.models import Structure
-from rest_framework.response import Response
 
 
 class StructureSerializer(serializers.HyperlinkedModelSerializer):
@@ -48,8 +46,6 @@ class SearchViewSet(APIView):
     #    queryset = self.get_queryset()
     #    serializer = self.get_serializer()(queryset, many=True)
     #    return Response(serializer.data)
-
-
 
 
 router = routers.DefaultRouter()
