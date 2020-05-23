@@ -33,9 +33,12 @@ class Experiment(models.Model):
     run_date = models.DateTimeField(default=timezone.now, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    raw_data = models.FileField(upload_to=upload_to_experiment)
     batch_experiment = models.ForeignKey("self",default=None,on_delete=models.CASCADE,null=True)
     batch_experiment_index = models.PositiveIntegerField(null=True,default=None)
+
+class ExperimentData(models.Model):
+    raw_data = models.FileField(upload_to=upload_to_experiment)
+    experiment = models.ForeignKey(Experiment,related_name="data", on_delete=models.CASCADE)
 
 
 class ExperimentData(models.Model):
