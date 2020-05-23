@@ -1,6 +1,6 @@
 from django.db import models
 
-from experiments.models import Experiment, ExperimentDataXY
+from experiments.models import Experiment, ExperimentDataPointXY
 
 
 class SECTypeAdditives(models.Model):
@@ -18,7 +18,7 @@ class SEC(Experiment):
     type = SECType
 
 
-class SECRawData(ExperimentDataXY):
+class SECRawDataPoint(ExperimentDataPointXY):
     experiment = models.ForeignKey(SEC, on_delete=models.CASCADE)
     x = models.FloatField()
     y = models.FloatField()

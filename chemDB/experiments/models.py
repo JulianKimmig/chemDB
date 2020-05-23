@@ -34,16 +34,30 @@ class Experiment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     raw_data = models.FileField(upload_to=upload_to_experiment)
+    batch_experiment = models.ForeignKey("self",default=None,on_delete=models.CASCADE,null=True)
+    batch_experiment_index = models.PositiveIntegerField(null=True,default=None)
 
 
-class ExperimentDataXY(models.Model):
+class ExperimentData(models.Model):
     experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
+    name=models.CharField(max_length=32)
+
+class ExperimentDataPointX(models.Model):
+    experiment_data = models.ForeignKey(ExperimentData, on_delete=models.CASCADE)
+    x = models.FloatField()
+
+    class Meta:
+        abstract = True
+        unique_together = ('experiment_data', 'x',)
+
+class ExperimentDataPointXY(models.Model):
+    experiment_data = models.ForeignKey(ExperimentData, on_delete=models.CASCADE)
     x = models.FloatField()
     y = models.FloatField()
 
     class Meta:
         abstract = True
-        unique_together = ('experiment', 'x',)
+        unique_together = ('experiment_data', 'x',)
 
 
 from .sub_models import *

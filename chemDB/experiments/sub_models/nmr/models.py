@@ -1,6 +1,6 @@
 from django.db import models
 
-from experiments.models import Experiment, ExperimentDataXY
+from experiments.models import Experiment, ExperimentDataPointXY
 
 
 class Nmr(Experiment):
@@ -16,7 +16,7 @@ class D1Nmr(Nmr):
     type = models.CharField(max_length=16, choices=D1NmrChoices.choices, default=D1NmrChoices.H1)
 
 
-class D1NmrData(ExperimentDataXY):
+class D1NmrDataPoint(ExperimentDataPointXY):
     experiment = models.ForeignKey(D1Nmr, on_delete=models.CASCADE)
     x = models.FloatField()
     y = models.FloatField()
