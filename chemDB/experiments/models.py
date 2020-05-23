@@ -36,7 +36,10 @@ class Experiment(models.Model):
     batch_experiment = models.ForeignKey("self",default=None,on_delete=models.CASCADE,null=True)
     batch_experiment_index = models.PositiveIntegerField(null=True,default=None)
 
-class ExperimentData(models.Model):
+    def get_data(self):
+        return self.data
+
+class ExperimentRawData(models.Model):
     raw_data = models.FileField(upload_to=upload_to_experiment)
     experiment = models.ForeignKey(Experiment,related_name="data", on_delete=models.CASCADE)
 

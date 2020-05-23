@@ -165,6 +165,8 @@ REST_FRAMEWORK = {
     ]
 }
 
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 # import polydeep_base_server.common.settings
 # locals().update(
 #    polydeep_base_server.common.settings.apply(
