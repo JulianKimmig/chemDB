@@ -23,7 +23,7 @@ class GeneraExperiment(models.Model):
 
 def upload_to_experiment(instance, filename):
     return 'data/experiments/{classname}/{date}_{username}_{filename}'.format(
-        username=instance.experiment.owner.username, classname=instance.experiment.__class__.__name__, date=timezone.now(),
+        username=instance.experiment.owner.auth_user.username, classname=instance.experiment.__class__.__name__, date=timezone.now(),
         filename=filename)
 
 
@@ -34,7 +34,7 @@ class Experiment(models.Model):
     run_date = models.DateTimeField(default=timezone.now, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    batch_experiment = models.ForeignKey("self",default=None,on_delete=models.CASCADE,null=True)
+    batch_experiment = models.ForeignKey("self",default=None,on_delete=models.CASCADE,null=True,related_name="sub_experiments")
     batch_experiment_index = models.PositiveIntegerField(null=True,default=None)
 
     def get_data(self):
@@ -57,26 +57,27 @@ class ExperimentRawData(models.Model):
     def __str__(self):
         return "{} ({})".format(self.name,self.experiment)
 
+class DataTypesChoices(models.TextChoices):
+    STRING = ("str","string")
+    FLOAT = ("float","decimal")
+    INT = ("int","integer")
+    BOOL = ("bool","boolean")
+
 class ExperimentData(models.Model):
     experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)
     name=models.CharField(max_length=32)
-
-class ExperimentDataPointX(models.Model):
-    experiment_data = models.ForeignKey(ExperimentData, on_delete=models.CASCADE)
-    x = models.FloatField()
+    type = models.CharField(max_length=5,choices=DataTypesChoices.choices,default=DataTypesChoices.FLOAT)
 
     class Meta:
-        abstract = True
-        unique_together = ('experiment_data', 'x',)
+        unique_together = ('experiment', 'name',)
+
+class ExperimentSingleValueData(ExperimentData):
+    value = models.CharField(max_length=32)
 
 class ExperimentDataPointXY(models.Model):
     experiment_data = models.ForeignKey(ExperimentData, on_delete=models.CASCADE)
-    x = models.FloatField()
-    y = models.FloatField()
+    x = models.CharField(max_length=32)
+    y = models.CharField(max_length=32)
 
     class Meta:
-        abstract = True
         unique_together = ('experiment_data', 'x',)
-
-
-from .sub_models import *
