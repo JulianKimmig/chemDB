@@ -18,6 +18,32 @@ class NanoparticleCharacterization(Experiment):
                             default=str(NanoparticleCharacterizationTool.MZetaNano1))
 
 
+class NanoparticleCharacterizationForm(forms.ModelForm):
+    class Meta:
+        model = NanoparticleCharacterization
+        exclude = []
+
+    def __init__(self, readonly=None, hide=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hide is None:
+            hide = []
+        if readonly is None:
+            readonly = []
+
+        for field_name in hide:
+            if field_name in self.fields:
+                self.fields[field_name].widget = forms.HiddenInput()
+
+        if readonly == "__all__":
+            for field_name, field in self.fields.items():
+                field.widget.attrs['readonly'] = True
+                field.widget.attrs['disabled'] = True
+        else:
+            for field_name in readonly:
+                if field_name in self.fields:
+                    self.fields[field_name].widget.attrs['readonly'] = True
+
 class NanoparticleBatchCharacterizationForm(forms.ModelForm):
     class Meta:
         model = NanoparticleCharacterization
@@ -35,12 +61,16 @@ class NanoparticleBatchCharacterizationForm(forms.ModelForm):
                                     required=True
                                     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,chem_db_user, *args, **kwargs):
+
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.add_input(Submit('submit', 'Continue'))
+        self.fields["owner"].initial = chem_db_user.pk
         self.fields["owner"].widget = forms.HiddenInput()
+        self.fields["short_name"].widget.attrs['placeholder']=chem_db_user.prefix_string("np_data")
+#        initial={'owner':chem_db_user.pk,"short_name":}
     #   self.fields['raw_data'] = forms.FileInput()
 
 
@@ -68,7 +98,7 @@ class Nanoparticle(Substance):
     preparation_method = models.ForeignKey(NanoparticlePreparationMethod, on_delete=models.SET_NULL, null=True)
     materials = models.ManyToManyField(Substance, through='Materials', related_name="as_nanopartice_material")
     additives = models.ManyToManyField(Substance, through='Additives', related_name="as_nanopartice_additive")
-    characterizations = models.ManyToManyField(NanoparticleCharacterization)
+    characterizations = models.ManyToManyField(NanoparticleCharacterization,related_name="characterized_nanoparticle")
 
     z_average = models.PositiveIntegerField(null=True)
     mean_diameter_by_volume = models.PositiveIntegerField(null=True)
@@ -88,13 +118,19 @@ class NanoparticleForm(forms.ModelForm):
         model = Nanoparticle
         exclude = ["user"]
 
-    def __init__(self, readonly=None, hide=None, *args, **kwargs):
+    def __init__(self, readonly=None, hide=None,remove=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if hide is None:
             hide = []
         if readonly is None:
             readonly = []
+        if remove is None:
+            remove = []
+
+        for field_name in remove:
+            if field_name in self.fields:
+                del self.fields[field_name]
 
         for field_name in hide:
             if field_name in self.fields:

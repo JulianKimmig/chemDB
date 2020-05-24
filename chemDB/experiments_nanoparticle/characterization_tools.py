@@ -83,7 +83,7 @@ class MZetaNano1(NpCharacterTool):
 #                characterizations=[character]
             ))
 
-        return batch_experiment,sub_experiments,np,df
+        return df
 
 AVAILABLE_CHARACTERIZATIONS = {
     c.__class__.__name__: c for c in [MZetaNano1()]

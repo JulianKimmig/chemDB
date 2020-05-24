@@ -12,8 +12,14 @@
 
 {% block content %}
     Check the data. Values like materials, additives, etc. can be set in the next step
+
+    parsed data:
     <div style="overflow: scroll">
-    <table id="formset" class="form">
+    {{ df }}
+    </div>
+    interpreted nanoparticles:
+    <div style="overflow-x: scroll">
+        <table id="formset" class="form">
         {% for form in np_formset %}
             {% if forloop.first %}
                 <thead><tr>
@@ -39,4 +45,44 @@
         {% endfor %}
     </table>
     </div>
+    interpreted characterization experiments:
+    <div style="overflow-x: scroll">
+        <table id="formset" class="form">
+            {% for form in np_char_formset %}
+                {% if forloop.first %}
+                    <thead><tr>
+                        {% for field in form.visible_fields %}
+                            <th>{{ field.label|capfirst }}</th>
+                        {% endfor %}
+                    </tr></thead>
+                {% endif %}
+                <tr class="">
+                    {% for field in form.visible_fields %}
+                        <td>
+                            {# Include the hidden fields in the form #}
+                            {% if forloop.first %}
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                            {% endif %}
+                            {{ field.errors.as_ul }}
+                            {{ field }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+    <input type="hidden" name="next_step" value="3">
+        <input type="hidden" name="np_character_batch" value="{{ np_character_batch.pk }}">
+    <input type="submit" class="btn btn-danger" value="cancel">
+    </form>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next_step" value="2">
+        <input type="submit" class="btn btn-success" value="ok">
+    </form>
 {% endblock %}
