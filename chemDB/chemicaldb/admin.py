@@ -14,3 +14,8 @@ for model in [cdb_models.Structure,
               cdb_models.StructureName,
               ]:
     admin.site.register(model)
+
+for model in [cdb_models.ChemdbUser,
+              cdb_models.ChemdbInstitute,
+              ]:
+    admin.site.register(model)
