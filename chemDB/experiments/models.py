@@ -21,15 +21,15 @@ class GeneraExperiment(models.Model):
 
 
 def upload_to_experiment(instance, filename):
-    return 'experiments/{username}/{classname}/{date}_{filename}'.format(
-        username=instance.user.user.username, classname=instance.__class__.__name__, date=timezone.now(),
+    return 'data/experiments/{classname}/{date}_{username}_{filename}'.format(
+        username=instance.experiment.owner.username, classname=instance.experiment.__class__.__name__, date=timezone.now(),
         filename=filename)
 
 
 class Experiment(models.Model):
     name = models.CharField(max_length=64)
     short_name = models.CharField(max_length=16)
-    owner = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     run_date = models.DateTimeField(default=timezone.now, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -39,10 +39,22 @@ class Experiment(models.Model):
     def get_data(self):
         return self.data
 
+    class Meta:
+        unique_together = ('short_name', 'owner',)
+
+    def __str__(self):
+        return "{} ({})".format(self.short_name,self.owner)
+
 class ExperimentRawData(models.Model):
+    name=models.CharField(max_length=32)
     raw_data = models.FileField(upload_to=upload_to_experiment)
     experiment = models.ForeignKey(Experiment,related_name="data", on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ('name', 'experiment')
+
+    def __str__(self):
+        return "{} ({})".format(self.name,self.experiment)
 
 class ExperimentData(models.Model):
     experiment = models.ForeignKey(Experiment, on_delete=models.CASCADE)

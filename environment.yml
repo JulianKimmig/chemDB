@@ -7,5 +7,6 @@ dependencies:
   - pip
   - gunicorn
   - rdkit
+  - pandas
   - pip:
       - -r file:requirements.txt
