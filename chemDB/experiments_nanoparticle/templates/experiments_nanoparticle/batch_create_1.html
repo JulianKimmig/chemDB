@@ -1,0 +1,16 @@
+{% extends 'chemicaldb/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+    NP- batch creation
+{% endblock %}
+
+{% block content_title %}
+    Create nanoparticles in batch
+{% endblock %}
+
+{% block content %}
+    Especially useful if NP-characterization was performed in batch and is in one experimental file
+    {% crispy characterization_form %}
+{% endblock %}

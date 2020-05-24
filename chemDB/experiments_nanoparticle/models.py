@@ -1,18 +1,47 @@
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from django import forms
 from django.db import models
 
 # Create your models here.
+from django.templatetags.static import static
+from django.utils.safestring import mark_safe
+
 from chemicaldb.sub_models import Substance, Structure
 from experiments.models import GeneraExperiment, ConcentrationUnits, Experiment
+from experiments_nanoparticle.characterization_tools import NanoparticleCharacterizationTool
 
-
-class NanoparticleCharacterizationTool(models.TextChoices):
-    MALVEN_ZETASIZER_NANO="MZetaNano","Malvern Zetasizer Nano"
-
-NanoparticleCharacterizationTool.max_length = 9
 
 class NanoparticleCharacterization(Experiment):
-    tool= models.CharField(max_length=NanoparticleCharacterizationTool.max_length, choices=NanoparticleCharacterizationTool.choices,
-                           default=NanoparticleCharacterizationTool.MALVEN_ZETASIZER_NANO)
+    tool = models.CharField(max_length=NanoparticleCharacterizationTool.max_length,
+                            choices=NanoparticleCharacterizationTool.choices,
+                            default=str(NanoparticleCharacterizationTool.MZetaNano1))
+
+
+class NanoparticleBatchCharacterizationForm(forms.ModelForm):
+    class Meta:
+        model = NanoparticleCharacterization
+        exclude = ["run_date", "batch_experiment", "batch_experiment_index"]
+
+    raw_data = forms.FileField(help_text="the experimented raw data, will not be interpreted (until know)")
+    exported_data = forms.FileField(widget=forms.FileInput(attrs={'accept': '.txt,.csv'}),
+                                    help_text=mark_safe(
+                                        "the experimented raw data, will not be interpreted (until know).</br>"
+                                        "For '{}' get the export template <a href='{}' download>here</a>.".format(
+                                            NanoparticleCharacterizationTool.MZetaNano1.long_name,
+                                            static(
+                                                'experiments_nanoparticle/characterization_templates/chemdb_zetasizer_np_export_1.edf')
+                                        )),
+                                    required=True
+                                    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.add_input(Submit('submit', 'Continue'))
+        self.fields["owner"].widget = forms.HiddenInput()
+    #   self.fields['raw_data'] = forms.FileInput()
 
 
 class NanoparticlePreparationMethod(GeneraExperiment):
@@ -24,34 +53,72 @@ def _validate_prep_method(np):
         return False
     return True
 
+
 def _validate_material(np):
-    if len(np.materials) <=0:
+    if len(np.materials) <= 0:
         return False
     return True
 
-NP_VALIDATION_PREPARATION="np_preparation_method",_validate_prep_method
-NP_VALIDATION_MATERIAL="np_material",_validate_material
+
+NP_VALIDATION_PREPARATION = "np_preparation_method", _validate_prep_method
+NP_VALIDATION_MATERIAL = "np_material", _validate_material
+
 
 class Nanoparticle(Substance):
     preparation_method = models.ForeignKey(NanoparticlePreparationMethod, on_delete=models.SET_NULL, null=True)
-    materials = models.ManyToManyField(Substance, through='Materials',related_name="as_nanopartice_material")
-    additives = models.ManyToManyField(Substance, through='Additives',related_name="as_nanopartice_additive")
+    materials = models.ManyToManyField(Substance, through='Materials', related_name="as_nanopartice_material")
+    additives = models.ManyToManyField(Substance, through='Additives', related_name="as_nanopartice_additive")
     characterizations = models.ManyToManyField(NanoparticleCharacterization)
+
+    z_average = models.PositiveIntegerField(null=True)
+    mean_diameter_by_volume = models.PositiveIntegerField(null=True)
+    mean_diameter_by_number = models.PositiveIntegerField(null=True)
+    mean_diameter_by_intensity = models.PositiveIntegerField(null=True)
+    pdi = models.FloatField(null=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validity_checks.update({
-            NP_VALIDATION_PREPARATION[0]:NP_VALIDATION_PREPARATION[1]
+            NP_VALIDATION_PREPARATION[0]: NP_VALIDATION_PREPARATION[1]
         })
+
+
+class NanoparticleForm(forms.ModelForm):
+    class Meta:
+        model = Nanoparticle
+        exclude = ["user"]
+
+    def __init__(self, readonly=None, hide=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hide is None:
+            hide = []
+        if readonly is None:
+            readonly = []
+
+        for field_name in hide:
+            if field_name in self.fields:
+                self.fields[field_name].widget = forms.HiddenInput()
+
+        if readonly == "__all__":
+            for field_name, field in self.fields.items():
+                field.widget.attrs['readonly'] = True
+                field.widget.attrs['disabled'] = True
+        else:
+            for field_name in readonly:
+                if field_name in self.fields:
+                    self.fields[field_name].widget.attrs['readonly'] = True
+
 
 class Materials(models.Model):
     nanoparticle = models.ForeignKey(Nanoparticle, on_delete=models.CASCADE, related_name="np_material_particle")
-    material = models.ForeignKey(Substance, on_delete=models.CASCADE,related_name="np_material" )
+    material = models.ForeignKey(Substance, on_delete=models.CASCADE, related_name="np_material")
     relative_content = models.FloatField()
+
 
 class Additives(models.Model):
     nanoparticle = models.ForeignKey(Nanoparticle, on_delete=models.CASCADE, related_name="np_additives_particle")
-    material = models.ForeignKey(Substance, on_delete=models.CASCADE,related_name="np_additive" )
+    material = models.ForeignKey(Substance, on_delete=models.CASCADE, related_name="np_additive")
     concentration = models.FloatField()
     concentration_unit = models.CharField(max_length=ConcentrationUnits.max_length, choices=ConcentrationUnits.choices,
                                           default=ConcentrationUnits.MOL_LITER)
