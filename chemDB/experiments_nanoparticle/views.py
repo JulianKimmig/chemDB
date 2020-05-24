@@ -18,7 +18,7 @@ def main_view(request):
 
 class batch_particle_creation(View):
     def get(self,request):
-        characterization_form=NanoparticleBatchCharacterizationForm(initial={'owner':request.user.id})
+        characterization_form=NanoparticleBatchCharacterizationForm(initial={'owner':request.user.chemdb_user.id})
         characterization_form.helper.add_input(Hidden("next_step", 1))
         context = {'characterization_form':characterization_form}
         return render(request, "experiments_nanoparticle/batch_create_1.html",context)
@@ -33,7 +33,7 @@ class batch_particle_creation(View):
         characterization_form=NanoparticleBatchCharacterizationForm(request.POST,request.FILES,)
         if characterization_form.is_valid():
             batch_experiment = characterization_form.save(commit=True)
-            batch_experiment.owner=request.user
+            batch_experiment.owner=request.user.chemdb_user
 
             form_data=characterization_form.cleaned_data
             tool = getattr(NanoparticleCharacterizationTool,form_data['tool'])
@@ -56,7 +56,7 @@ class batch_particle_creation(View):
                     character = NanoparticleCharacterization.objects.create(
                         name="{} in {}".format(data['sample_name'], batch_experiment.short_name),
                         short_name="{}_np-characterization".format(data['sample_name']),
-                        owner = request.user,
+                        owner = request.user.chemdb_user,
                         tool=batch_experiment.tool,
                         run_date=data['run_date'],
                         batch_experiment=batch_experiment,
