@@ -1,6 +1,7 @@
 from django.utils import timezone
-from django.contrib.auth.models import User
 from django.db import models
+
+from chemicaldb.sub_models import ChemdbUser
 
 
 class ConcentrationUnits(models.TextChoices):
@@ -29,7 +30,7 @@ def upload_to_experiment(instance, filename):
 class Experiment(models.Model):
     name = models.CharField(max_length=64)
     short_name = models.CharField(max_length=16)
-    owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    owner = models.ForeignKey(ChemdbUser, null=True, on_delete=models.SET_NULL)
     run_date = models.DateTimeField(default=timezone.now, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

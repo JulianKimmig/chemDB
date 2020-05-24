@@ -1,17 +1,16 @@
-from django.contrib.auth.models import User
 from django.db import models
 
 # Create your models here.
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-from .. import Structure
+from .. import Structure, ChemdbUser
 
 
 class Substance(models.Model):
     name = models.CharField(max_length=64)
     code = models.CharField(max_length=16, unique=True, null=True,)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(ChemdbUser, on_delete=models.SET_NULL, null=True)
     valid = models.BooleanField(default=False,editable=False)
 
     def __str__(self):
