@@ -1,9 +1,8 @@
-from wq.db import rest
-
-from . import views, api_views, api_urls
 from django.contrib.auth import views as auth_views
-from django.urls import path, include
 from django.contrib.auth.views import LoginView
+from django.urls import path, include
+
+from . import views, api_urls
 
 app_name="chemicaldb"
 
