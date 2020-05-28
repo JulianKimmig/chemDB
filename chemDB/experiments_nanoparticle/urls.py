@@ -8,6 +8,9 @@ urlpatterns = [
     path('batch_particle_creation',views.batch_particle_creation.as_view(),name="batch_particle_creation"),
     path('batch_characterizations',views.batch_characterizations,name="get_batch_characterizations"),
     path('characterization/<pk>',views.view_characterizations,name="view_characterization"),
+
+    path('batch_edit_characterization',views.batch_edit_characterization,name="batch_edit_characterization"),
+
     path('np/<pk>',views.view_particle,name="view_particle"),
 ]
 

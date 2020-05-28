@@ -56,7 +56,7 @@ class NanoparticleBatchCharacterizationForm(forms.ModelForm):
                                         "For '{}' get the export template <a href='{}' download>here</a>.".format(
                                             NanoparticleCharacterizationTool.MZetaNano1.long_name,
                                             static(
-                                                'experiments_nanoparticle/characterization_templates/chemdb_zetasizer_np_export_1.edf')
+                                                'experiments_nanoparticle/characterization_templates/chemdb_zetasizer_np_export_1.zip')
                                         )),
                                     required=True
                                     )

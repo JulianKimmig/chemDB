@@ -12,22 +12,51 @@
 
 {% block content %}
     <div class="row">
-        <div class="col-md-3"><b>code</b></div>
+        <div class="col-md-3"><b>Code</b></div>
         <div class="col-md-9">{{ np.code }}</div>
     </div>
+    <div class="row">
+        <div class="col-md-3"><b>Z average</b></div>
+        <div class="col-md-9">{{ np.z_average }} nm</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3"><b>Diameter by volume-mean</b></div>
+        <div class="col-md-9">{{ np.mean_diameter_by_volume }} nm</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3"><b>Diameter by number-mean</b></div>
+        <div class="col-md-9">{{ np.mean_diameter_by_number }} nm</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3"><b>Diameter by intensity-mean</b></div>
+        <div class="col-md-9">{{ np.mean_diameter_by_intensity }} nm</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3"><b>PdI</b></div>
+        <div class="col-md-9">{{ np.pdi }}</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3"><b>Preparation Method</b></div>
+        <div class="col-md-9">{{ np.preparation_method }}</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3"><b>Materials</b></div>
+        <div class="col-md-9">{{ np.materials }}</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3"><b>Additives</b></div>
+        <div class="col-md-9">{{ np.additives }}</div>
+    </div>
+
     <div class="row">
         <div class="col-md-3"><b>characterizations</b></div>
         <div class="col-md-9">
             {% for characterization in np.characterizations.all %}
                 <div class="row">
-                    <div class="col-md-6">
-                        <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_characterization' pk=characterization.pk%}">{{characterization.name}}</a>
-                    </div>
-                    <div class="col-md-6">
-                        {% for np in characterization.characterized_nanoparticle.all %}
-                            <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_particle' pk=np.pk%}">{{np.name}} ({{np.code}})</a>
-                        {% endfor %}
-                    </div>
+                    <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_characterization' pk=characterization.pk%}">{{characterization.name}}</a>
                 </div>
             {% endfor %}
         </div>

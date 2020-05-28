@@ -1,6 +1,6 @@
 import io
 import pandas as pd
-
+import dateparser
 
 
 class NpCharacterTool():
@@ -17,37 +17,65 @@ class MZetaNano1(NpCharacterTool):
     long_name = "Malven Zetasizer Nano"
 
     def read_byte_object_to_df(self, data,delimter=",",decimal="."):
-        df = pd.read_csv(io.StringIO(data.decode('ansi')),delimiter=delimter,decimal=decimal)
+        try:
+            io_string = io.StringIO(data.decode(''))
+        except:
+            try:
+                io_string = io.StringIO(data.decode('cp1252'))
+            except:
+                io_string = io.StringIO(data.decode('ansi'))
+
+        df = pd.read_csv(io_string,delimiter=delimter,decimal=decimal)
+
         #rename
-        import dateparser
+
         df.rename(columns={"Measurement Date and Time": "run_date",
                            "Sample Name": "sample_name",
-                           #                          "Temperature (°C)": "temperature",
+                           "Temperature (°C)": "temperature",
+                           "T (°C)": "temperature",
                            "Z-Average (d.nm)":"z_average",
+                           "Z-Ave (d.nm)":"z_average",
                            "PdI":"pdi",
                            "Mean Count Rate (kcps)":"mean_count_rate",
                            "Volume Mean (d.nm)":"mean_diameter_by_volume",
                            "Intensity Mean (d.nm)":"mean_diameter_by_number",
                            "Number Mean (d.nm)":"mean_diameter_by_intensity",
+                           "Diffusion Coefficient (µ²/s)":"diff_coeff",
                            },inplace=True)
         if "z_average" not in df.columns:
             if delimter == ",":
                 return self.read_byte_object_to_df(data,delimter="\t",decimal=decimal)
             if delimter == "\t":
                 return None
+
         if decimal == "." and "," in df["z_average"].iloc[0]:
             return self.read_byte_object_to_df(data,delimter=delimter, decimal = ",")
 
-        df["run_date"] = df["run_date"].apply( lambda ts: dateparser.parse(ts))
-        df["z_average"] = df["z_average"].astype(float).astype(int)
-        #        df["temperature"] = df["temperature"].astype(float).astype(int)
-        df["pdi"] = df["pdi"].astype(float)
-        df["mean_count_rate"] = df["mean_count_rate"].astype(float).astype(int)
-        df["mean_diameter_by_volume"] = df["mean_diameter_by_volume"].astype(float).astype(int)
-        df["mean_diameter_by_number"] = df["mean_diameter_by_number"].astype(float).astype(int)
-        df["mean_diameter_by_intensity"] = df["mean_diameter_by_intensity"].astype(float).astype(int)
 
+        print(df.iloc[0].to_dict())
 
+        def _to_float(date):
+            if isinstance(data,float):
+                return date
+            if isinstance(data,str):
+                date = date.replace(',','.')
+            return float(date)
+
+        def _to_int(date):
+            if isinstance(data,int):
+                return date
+            return int(_to_float(date))
+
+        df["z_average"] = df["z_average"].apply(_to_int)
+        df["run_date"] = df["run_date"].apply(dateparser.parse)
+        df["temperature"] = df["temperature"].apply(_to_int)
+        df["pdi"] = df["pdi"].apply(_to_float)
+        df["mean_count_rate"] = df["mean_count_rate"].apply(_to_int)
+        df["mean_diameter_by_volume"] = df["mean_diameter_by_volume"].apply(_to_int)
+        df["mean_diameter_by_number"] = df["mean_diameter_by_number"].apply(_to_int)
+        df["mean_diameter_by_intensity"] = df["mean_diameter_by_intensity"].apply(_to_int)
+
+        print(df["z_average"])
         return df
 
     def read_batch_data(self, data,name,short_name):

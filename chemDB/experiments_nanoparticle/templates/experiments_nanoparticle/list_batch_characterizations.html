@@ -3,15 +3,14 @@
 
 
 {% block title %}
-    NP - batch characterizationa
+    NP- batch creation
 {% endblock %}
 
 {% block content_title %}
-    List of available nanoparticle batch characterizations
+    Edit nanoparticles in batch
 {% endblock %}
 
 {% block content %}
-    {% for batch in batches %}
-        <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_characterization' pk=batch.pk%}">{{ batch.name }} ({{ batch.short_name }})</a>
-    {% endfor %}
+    Especially useful if NP-characterization was performed in batch and is in one experimental file
+    {% crispy characterization_form %}
 {% endblock %}

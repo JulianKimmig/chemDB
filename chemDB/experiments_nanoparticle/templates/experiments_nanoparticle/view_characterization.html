@@ -40,6 +40,14 @@
     <div class="row">
         <div class="col-md-3"><b>sub characterizations</b></div>
         <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-6">
+                    Characterization
+                </div>
+                <div class="col-md-6">
+                    Particles
+                </div>
+            </div>
             {% for subbatch in characterization.sub_experiments.all %}
                 <div class="row">
                     <div class="col-md-6">
@@ -54,6 +62,12 @@
             {% endfor %}
         </div>
     </div>
+        <div class="row">
+            <a class="btn btn-primary"
+               href="{% url "chemicaldb:experiments:experiments_nanoparticle:batch_edit_characterization" %}?pk={% for t in characterization.sub_experiments.all %}{% if not forloop.first %},{% endif %}{{ t.pk }}{% endfor %}">
+                batch edit characterization</a>
+            <a class="btn btn-primary">batch edit nanoparticles</a>
+        </div>
     {% endif %}
 
 {% endblock %}

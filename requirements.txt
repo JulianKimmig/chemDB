@@ -1,6 +1,7 @@
 django
 mysqlclient # mysql support
 django-mysql
+dateparser
 
 django-guardian
 django-bootstrap4

@@ -42,29 +42,29 @@ class batch_particle_creation(View):
         chem_db_user=request.user.chemdbuser
         characterization_form=NanoparticleBatchCharacterizationForm(chem_db_user=chem_db_user,data=request.POST,files=request.FILES,)
         if characterization_form.is_valid():
-            batch_experiment = characterization_form.save(commit=True)
-            batch_experiment.owner=chem_db_user
-
             form_data=characterization_form.cleaned_data
+
             tool = getattr(NanoparticleCharacterizationTool,form_data['tool'])
             df = tool.read_batch_data(data=form_data['exported_data'].read(),name=form_data['name'],short_name=form_data['short_name'])
+
+            batch_experiment = characterization_form.save(commit=True)
+            batch_experiment.owner=chem_db_user
 
             ExperimentRawData.objects.create(name="exported_data",raw_data=form_data['exported_data'],experiment=batch_experiment)
             ExperimentRawData.objects.create(name="raw_data",raw_data=form_data['raw_data'],experiment=batch_experiment)
 
-            earliest=None
+            earliest = df['run_date'].min()
             nanoparticles=[]
-            characterizations = []
+            characterizations=[]
             step=""
             try:
+                step="NanoparticleCharacterization"
                 for row,data in df.iterrows():
-                    if earliest is None:
-                        earliest = data['run_date']
-                    if data['run_date'] < earliest:
-                        earliest = data['run_date']
+                    #   if earliest is None:
+                 #       earliest = data['run_date']
+                 #   if data['run_date'] < earliest:
+                 #       earliest = data['run_date']
 
-
-                    step="NanoparticleCharacterization"
                     character = NanoparticleCharacterization.objects.create(
                         name="{} in {}".format(data['sample_name'], batch_experiment.short_name),
                         short_name="{}_np-characterization".format(data['sample_name']),
@@ -139,11 +139,15 @@ class batch_particle_creation(View):
 
     def post2(self, request):
         chem_db_user=request.user.chemdbuser
+        batch_characterization = NanoparticleCharacterization.objects.get(owner=chem_db_user,pk=request.POST["np_character_batch"])
+        np_session_data = request.session['batch_particle_creation_1']
+        assert batch_characterization.pk == np_session_data['batch_experiment']
+
+        return redirect("chemicaldb:experiments:experiments_nanoparticle:view_characterization",pk=batch_characterization.pk)
 
     def post3(self, request):
         chem_db_user=request.user.chemdbuser
         batch_characterization = NanoparticleCharacterization.objects.get(owner=chem_db_user,pk=request.POST["np_character_batch"])
-        np_session_data = request.session['batch_particle_creation_1']
         np_session_data = request.session['batch_particle_creation_1']
         assert batch_characterization.pk == np_session_data['batch_experiment']
 
@@ -171,3 +175,11 @@ def view_particle(request,pk):
     np = Nanoparticle.objects.get(pk=pk)
     context={'np':np}
     return render(request, "experiments_nanoparticle/view_particle.html",context)
+
+
+def batch_edit_characterization(request):
+    chem_db_user=request.user.chemdbuser
+    pks = [int(pk) for pk in request.GET.get("pk").split(",")]
+    characterizations = NanoparticleCharacterization.objects.filter(pk__in=pks,owner=chem_db_user)
+    context={"characterizations":characterizations}
+    return render(request, "experiments_nanoparticle/batch_edit_characterization.html",context)

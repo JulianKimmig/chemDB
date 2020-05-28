@@ -83,6 +83,7 @@
     <form method="post">
         {% csrf_token %}
         <input type="hidden" name="next_step" value="2">
+        <input type="hidden" name="np_character_batch" value="{{ np_character_batch.pk }}">
         <input type="submit" class="btn btn-success" value="ok">
     </form>
 {% endblock %}

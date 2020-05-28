@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+
+import datetime
+from django.utils.timezone import make_aware
 from json_dict import JsonDict
 import random
 
@@ -173,3 +176,4 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 #        project_name = "chemDB",
 #    )
 # )
+aware_datetime = make_aware(datetime.datetime.now())
