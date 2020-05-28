@@ -1,0 +1,36 @@
+{% extends 'chemicaldb/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+    NP - {{ np }}
+{% endblock %}
+
+{% block content_title %}
+    {{ np.name }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3"><b>code</b></div>
+        <div class="col-md-9">{{ np.code }}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3"><b>characterizations</b></div>
+        <div class="col-md-9">
+            {% for characterization in np.characterizations.all %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_characterization' pk=characterization.pk%}">{{characterization.name}}</a>
+                    </div>
+                    <div class="col-md-6">
+                        {% for np in characterization.characterized_nanoparticle.all %}
+                            <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_particle' pk=np.pk%}">{{np.name}} ({{np.code}})</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}

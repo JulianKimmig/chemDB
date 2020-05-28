@@ -2,6 +2,7 @@ from datetime import datetime
 
 from crispy_forms.layout import Hidden
 from django.core import serializers
+from django.db.models import Count
 from django.forms import modelformset_factory
 from django.shortcuts import render, redirect
 
@@ -155,3 +156,18 @@ class batch_particle_creation(View):
             np.delete()
         batch_characterization.delete()
         return self.get(request)
+
+def batch_characterizations(request):
+   batches =  NanoparticleCharacterization.objects.annotate(sub_experiment_count=Count('sub_experiments')).filter(sub_experiment_count__gte=1)
+   context={'batches':batches}
+   return render(request, "experiments_nanoparticle/list_batch_characterizations.html",context)
+
+def view_characterizations(request,pk):
+    characterization = NanoparticleCharacterization.objects.get(pk=pk)
+    context={'characterization':characterization}
+    return render(request, "experiments_nanoparticle/view_characterization.html",context)
+
+def view_particle(request,pk):
+    np = Nanoparticle.objects.get(pk=pk)
+    context={'np':np}
+    return render(request, "experiments_nanoparticle/view_particle.html",context)

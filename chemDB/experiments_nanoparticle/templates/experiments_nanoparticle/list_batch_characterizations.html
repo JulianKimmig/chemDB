@@ -1,0 +1,17 @@
+{% extends 'chemicaldb/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+    NP - batch characterizationa
+{% endblock %}
+
+{% block content_title %}
+    List of available nanoparticle batch characterizations
+{% endblock %}
+
+{% block content %}
+    {% for batch in batches %}
+        <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_characterization' pk=batch.pk%}">{{ batch.name }} ({{ batch.short_name }})</a>
+    {% endfor %}
+{% endblock %}

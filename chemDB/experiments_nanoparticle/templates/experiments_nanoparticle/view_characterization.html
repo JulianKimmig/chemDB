@@ -1,0 +1,59 @@
+{% extends 'chemicaldb/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+    NP - {{ characterization }}
+{% endblock %}
+
+{% block content_title %}
+    {{ characterization.name }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-3"><b>short name</b></div>
+        <div class="col-md-9">{{ characterization.short_name }}</div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3"><b>nanoparticles</b></div>
+        <div class="col-md-9">
+            {% for np in characterization.characterized_nanoparticle.all %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_particle' pk=np.pk%}">{{np.name}} ({{np.code}})</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if characterization.batch_experiment %}
+    <div class="row">
+        <div class="col-md-3"><b>batch characterization</b></div>
+        <div class="col-md-9"><a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_characterization' pk=characterization.batch_experiment.nanoparticlecharacterization.pk %}">{{characterization.batch_experiment.nanoparticlecharacterization}}</a></div>
+    </div>
+    {% endif %}
+
+    {% if characterization.sub_experiments.all|length > 0 %}
+    <div class="row">
+        <div class="col-md-3"><b>sub characterizations</b></div>
+        <div class="col-md-9">
+            {% for subbatch in characterization.sub_experiments.all %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_characterization' pk=subbatch.nanoparticlecharacterization.pk%}">{{subbatch.nanoparticlecharacterization.name}}</a>
+                    </div>
+                    <div class="col-md-6">
+                        {% for np in subbatch.nanoparticlecharacterization.characterized_nanoparticle.all %}
+                            <a href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_particle' pk=np.pk%}">{{np.name}} ({{np.code}})</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+{% endblock %}
