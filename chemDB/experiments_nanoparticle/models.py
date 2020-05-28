@@ -94,6 +94,7 @@ NP_VALIDATION_PREPARATION = "np_preparation_method", _validate_prep_method
 NP_VALIDATION_MATERIAL = "np_material", _validate_material
 
 
+
 class Nanoparticle(Substance):
     preparation_method = models.ForeignKey(NanoparticlePreparationMethod, on_delete=models.SET_NULL, null=True)
     materials = models.ManyToManyField(Substance, through='Materials', related_name="as_nanopartice_material")
