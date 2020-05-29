@@ -62,12 +62,16 @@
             {% endfor %}
         </div>
     </div>
+        {% if user.chemdbuser == characterization.owner %}
         <div class="row">
             <a class="btn btn-primary"
                href="{% url "chemicaldb:experiments:experiments_nanoparticle:batch_edit_characterization" %}?pk={% for t in characterization.sub_experiments.all %}{% if not forloop.first %},{% endif %}{{ t.pk }}{% endfor %}">
                 batch edit characterization</a>
-            <a class="btn btn-primary">batch edit nanoparticles</a>
+            <a class="btn btn-primary"
+               href="{% url "chemicaldb:experiments:experiments_nanoparticle:batch_edit_particles" %}?pk={% for t in characterization.deep_characterized_nanoparticle %}{% if not forloop.first %},{% endif %}{{ t.pk }}{% endfor %}">
+                batch edit nanoparticles</a>
         </div>
+        {% endif %}
     {% endif %}
 
 {% endblock %}

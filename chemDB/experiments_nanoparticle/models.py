@@ -17,6 +17,13 @@ class NanoparticleCharacterization(Experiment):
                             choices=NanoparticleCharacterizationTool.choices,
                             default=str(NanoparticleCharacterizationTool.MZetaNano1))
 
+    def deep_characterized_nanoparticle(self,ignore=[]):
+        particle=[p for p in self.characterized_nanoparticle.all()]
+        ignore.append(self.pk)
+        for sub_experiment in self.sub_experiments.all():
+            if sub_experiment.pk not in ignore:
+                particle.extend(sub_experiment.nanoparticlecharacterization.deep_characterized_nanoparticle(ignore=ignore))
+        return particle
 
 class NanoparticleCharacterizationForm(forms.ModelForm):
     class Meta:
@@ -75,8 +82,23 @@ class NanoparticleBatchCharacterizationForm(forms.ModelForm):
 
 
 class NanoparticlePreparationMethod(GeneraExperiment):
-    pass
+   pass
 
+class NanoparticlePreparationMethodForm(forms.ModelForm):
+    class Meta:
+        model = NanoparticlePreparationMethod
+        exclude = []
+
+    def __init__(self,chem_db_user, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.add_input(Submit('submit', 'save'))
+        self.fields["owner"].initial = chem_db_user.pk
+        self.fields["owner"].widget = forms.HiddenInput()
+#        initial={'owner':chem_db_user.pk,"short_name":}
+#   self.fields['raw_data'] = forms.FileInput()
 
 def _validate_prep_method(np):
     if np.preparation_method is None:
@@ -152,6 +174,8 @@ class Materials(models.Model):
     material = models.ForeignKey(Substance, on_delete=models.CASCADE, related_name="np_material")
     relative_content = models.FloatField()
 
+    class Meta:
+        unique_together=("nanoparticle","material")
 
 class Additives(models.Model):
     nanoparticle = models.ForeignKey(Nanoparticle, on_delete=models.CASCADE, related_name="np_additives_particle")

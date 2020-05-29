@@ -13,5 +13,12 @@ class NanoparticleViewSet(viewsets.ModelViewSet):
     queryset = Nanoparticle.objects.all()
     serializer_class = NanoparticleSerializer
 
+
+class NanoparticleViewSet(viewsets.ModelViewSet):
+    queryset = Nanoparticle.objects.all()
+    serializer_class = NanoparticleSerializer
+
+
+
 router = routers.DefaultRouter()
 router.register(r'nanopoarticle', NanoparticleViewSet)

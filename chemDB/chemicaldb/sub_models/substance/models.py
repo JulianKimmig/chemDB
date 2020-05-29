@@ -9,7 +9,7 @@ from .. import Structure, ChemdbUser
 
 class Substance(models.Model):
     name = models.CharField(max_length=64)
-    code = models.CharField(max_length=16, unique=True, null=True,)
+    code = models.CharField(max_length=24, unique=True, null=True,)
     user = models.ForeignKey(ChemdbUser, on_delete=models.SET_NULL, null=True)
     valid = models.BooleanField(default=False,editable=False)
 
@@ -34,6 +34,9 @@ class Substance(models.Model):
             if save:
                 self.save()
         return self.valid
+
+
+
 
 from .submodels import *
 

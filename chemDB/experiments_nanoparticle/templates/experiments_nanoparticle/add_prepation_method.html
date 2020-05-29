@@ -1,0 +1,15 @@
+{% extends 'chemicaldb/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+    NP- new preparation method
+{% endblock %}
+
+{% block content_title %}
+    New preparation method
+{% endblock %}
+
+{% block content %}
+    {% crispy preparation_form %}
+{% endblock %}
