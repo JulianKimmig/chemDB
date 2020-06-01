@@ -11,11 +11,12 @@ from django.utils.safestring import mark_safe
 from django.views import View
 
 from chemicaldb.sub_models import Substance
-from experiments.models import ExperimentRawData, ExperimentData, DataTypesChoices, ExperimentSingleValueData
+from experiments.models import ExperimentRawData, ExperimentData, DataTypesChoices, ExperimentSingleValueData, \
+    ConcentrationUnits
 from experiments_nanoparticle.characterization_tools import NanoparticleCharacterizationTool
 from experiments_nanoparticle.models import NanoparticleBatchCharacterizationForm, Nanoparticle, NanoparticleForm, \
     NanoparticleCharacterization, NanoparticleCharacterizationForm, NanoparticlePreparationMethodForm, \
-    NanoparticlePreparationMethod, Materials
+    NanoparticlePreparationMethod, Materials, Additives
 
 
 def main_view(request):
@@ -207,7 +208,8 @@ class BatchEditParticles(View):
         pks = [int(pk) for pk in request.GET.get("pk").split(",")]
         particles = Nanoparticle.objects.filter(pk__in=pks, user=chem_db_user)
         context = {"particles": particles,
-                   "formulations":NanoparticlePreparationMethod.objects.all()
+                   "formulations":NanoparticlePreparationMethod.objects.all(),
+                   "concentration_units":ConcentrationUnits.choices,
                    }
         return render(request, "experiments_nanoparticle/batch_edit_particles.html", context)
 
@@ -221,15 +223,24 @@ class BatchEditParticles(View):
 
         pk_particle = [int(pk) for pk in request.POST.getlist('pk_particle', [])]
         preparation_method_pk = [None if pk == "" else int(pk) for pk in request.POST.getlist('preparation_method_pk', [])]
+        length=len(particles)
+        equal_particle_length = all(len(l) == length for l in [pk_particle,preparation_method_pk]) and all(p.pk in pk_particle for p in particles)
 
         material_np=[int(pk) for pk in request.POST.getlist('material_np', [])]
         material_pk=[int(pk) for pk in request.POST.getlist('material_pk', [])]
         material_relative_content=[float(c) for c in request.POST.getlist('material_relative_content', [])]
+        mat_len=len(material_np)
+        material_check = all(np in pk_particle for np in material_np) and all(len(l) == mat_len for l in [material_pk,material_relative_content])
 
+        additive_np=[int(pk) for pk in request.POST.getlist('additive_np', [])]
+        additive_pk=[int(pk) for pk in request.POST.getlist('additive_pk', [])]
+        additive_concentration=[float(c) for c in request.POST.getlist('additive_concentration', [])]
+        additive_unit=request.POST.getlist('additive_unit', [])
+        add_len=len(additive_np)
+        additive_check = all(np in pk_particle for np in additive_np) and all(len(l) == add_len for l in [additive_pk,additive_concentration,additive_unit])
 
-
-        length=len(particles)
-        if all(len(l) == length for l in [pk_particle,preparation_method_pk]) and all(p.pk in pk_particle for p in particles) and all(np in pk_particle for np in material_np):
+        print(equal_particle_length , material_check , additive_check)
+        if equal_particle_length and material_check and additive_check:
             prep_method_by_pk={}
             particles_by_pk ={}
             material_by_pk={}
@@ -247,6 +258,8 @@ class BatchEditParticles(View):
 
             for p in material_pk:
                 material_by_pk[p]=Substance.objects.get(pk=p)
+            for p in additive_pk:
+                material_by_pk[p]=Substance.objects.get(pk=p)
 
             for i in range(len(pk_particle)):
                 p=particles_by_pk[pk_particle[i]]
@@ -260,24 +273,52 @@ class BatchEditParticles(View):
                 if update:
                     p.save()
 
-            for i in range(len(material_np)):
+            for i in range(add_len):
+                np=particles_by_pk[additive_np[i]]
+                mat=material_by_pk[additive_pk[i]]
+                conc=additive_concentration[i]
+                unit = additive_unit[i]
+                additive, created = Additives.objects.get_or_create(nanoparticle=np, material=mat,concentration=conc,concentration_unit=unit)
+
+            for i in range(mat_len):
                 np=particles_by_pk[material_np[i]]
                 mat=material_by_pk[material_pk[i]]
                 cont=material_relative_content[i]
-
                 material, created = Materials.objects.get_or_create(nanoparticle=np, material=mat,relative_content=cont)
-
 
         return self.get(request)
 
 class AddPreparationMethod(View):
     def get(self, request):
         chem_db_user = request.user.chemdbuser
-        context = {"preparation_form": NanoparticlePreparationMethodForm(chem_db_user=chem_db_user)}
+        context = {"preparation_form": NanoparticlePreparationMethodForm(chem_db_user=chem_db_user,changeable=True)}
         return render(request, "experiments_nanoparticle/add_prepation_method.html", context)
 
     def post(self, request):
         chem_db_user = request.user.chemdbuser
-        prep_form = NanoparticlePreparationMethodForm(chem_db_user=chem_db_user, data=request.POST)
+        prep_form = NanoparticlePreparationMethodForm(chem_db_user=chem_db_user, data=request.POST,changeable=True)
         if prep_form.is_valid():
             prep_form.save()
+
+
+class ViewPreparationMethod(View):
+    def get(self, request,pk):
+        chem_db_user = request.user.chemdbuser
+        instance=NanoparticlePreparationMethod.objects.get(pk=pk)
+        context = {"preparation_form": NanoparticlePreparationMethodForm(instance=instance,changeable=instance.owner==chem_db_user)}
+        return render(request, "experiments_nanoparticle/add_prepation_method.html", context)
+
+    def post(self, request,pk):
+        chem_db_user = request.user.chemdbuser
+        instance=NanoparticlePreparationMethod.objects.get(pk=pk)
+        assert chem_db_user == instance.owner
+        assert chem_db_user.pk == int(request.POST.get('owner'))
+        prep_form = NanoparticlePreparationMethodForm(instance=instance,data=request.POST,changeable=instance.owner==chem_db_user)
+        if prep_form.is_valid():
+            prep_form.save()
+            print("AAA")
+        else:
+            print(prep_form.errors)
+
+        context = {"preparation_form": prep_form}
+        return render(request, "experiments_nanoparticle/add_prepation_method.html", context)

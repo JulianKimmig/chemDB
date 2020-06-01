@@ -65,7 +65,7 @@ class NanoparticleBatchCharacterizationForm(forms.ModelForm):
                                             static(
                                                 'experiments_nanoparticle/characterization_templates/chemdb_zetasizer_np_export_1.zip')
                                         )),
-                                    required=True
+                                    required=True,
                                     )
 
     def __init__(self,chem_db_user, *args, **kwargs):
@@ -77,6 +77,7 @@ class NanoparticleBatchCharacterizationForm(forms.ModelForm):
         self.fields["owner"].initial = chem_db_user.pk
         self.fields["owner"].widget = forms.HiddenInput()
         self.fields["short_name"].widget.attrs['placeholder']=chem_db_user.prefix_string("np_data")
+        self.fields["short_name"].help_text ="if does not start with '{}' the prefix will be added automatically.So you don't have to enter it".format(chem_db_user.get_prefix())
 #        initial={'owner':chem_db_user.pk,"short_name":}
     #   self.fields['raw_data'] = forms.FileInput()
 
@@ -89,13 +90,15 @@ class NanoparticlePreparationMethodForm(forms.ModelForm):
         model = NanoparticlePreparationMethod
         exclude = []
 
-    def __init__(self,chem_db_user, *args, **kwargs):
+    def __init__(self,chem_db_user=None,changeable=False, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        self.helper.add_input(Submit('submit', 'save'))
-        self.fields["owner"].initial = chem_db_user.pk
+        if changeable:
+            self.helper.form_method = 'post'
+            self.helper.add_input(Submit('submit', 'save'))
+        if chem_db_user:
+            self.fields["owner"].initial = chem_db_user.pk
         self.fields["owner"].widget = forms.HiddenInput()
 #        initial={'owner':chem_db_user.pk,"short_name":}
 #   self.fields['raw_data'] = forms.FileInput()

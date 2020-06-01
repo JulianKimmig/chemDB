@@ -10,7 +10,8 @@ app_name="chemicaldb"
 urlpatterns = [
 
     path('', views.main_view, name ="main"),
-    path('search', views.main_view, name ="search"),
+    path('search', views.main_view, name ="search"), # TODO: implement search page
+    path('substance/<pk>', views.substance_view, name ="substance_view"),
 
     path('api/', include(api_urls)),
 
@@ -19,6 +20,7 @@ urlpatterns = [
     path('logout/', auth_views.auth_logout, name='logout'),
 
     path('experiments/', include('experiments.urls')),
+    path('polymers/', include('chemicaldb_polymers.urls')),
 ]
 
 

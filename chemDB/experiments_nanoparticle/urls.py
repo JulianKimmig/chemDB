@@ -10,6 +10,8 @@ urlpatterns = [
     path('characterization/<pk>',views.view_characterizations,name="view_characterization"),
 
     path('add_preparation_method',views.AddPreparationMethod.as_view(),name="add_preparation_method"),
+    path('view_preparation_method/<pk>',views.ViewPreparationMethod.as_view(),name="view_preparation_method"),
+
 
     path('batch_edit_characterization',views.batch_edit_characterization,name="batch_edit_characterization"),
     path('batch_edit_particles',views.BatchEditParticles.as_view(),name="batch_edit_particles"),

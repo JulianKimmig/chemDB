@@ -71,6 +71,7 @@
                href="{% url "chemicaldb:experiments:experiments_nanoparticle:batch_edit_particles" %}?pk={% for t in characterization.deep_characterized_nanoparticle %}{% if not forloop.first %},{% endif %}{{ t.pk }}{% endfor %}">
                 batch edit nanoparticles</a>
         </div>
+            {{  characterization.deep_characterized_nanoparticle }}
         {% endif %}
     {% endif %}
 

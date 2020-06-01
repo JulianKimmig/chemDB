@@ -46,12 +46,44 @@
                 <input class="form-control" min="0" type="number" step="any" id="material_select_content" value="1">
             </div>
             <div class="col-md-2">
-                <button class="btn btn-primary btn-sm form-control" id="add_material_btn">add</button>
+
             </div>
-            <div class="col-md-2">
-                <button class="btn btn-danger btn-sm form-control" id="remove_material_btn">remove</button>
+            <div class="col-md-1">
+                <button class="btn btn-primary btn-sm form-control" id="add_material_btn">+</button>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-danger btn-sm form-control" id="remove_material_btn">-</button>
             </div>
         </div>
+
+
+        <div class="row">
+            <div class="col-md-2">
+                Additive
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" type="hidden" id="additive_select_pk" value="">
+                <input class="form-control" type="text" id="additive_select_last" value="">
+                <input class="form-control" type="text" id="additive_select_input" value="" style="display: none">
+            </div>
+            <div class="col-md-2">
+                <input class="form-control" min="0" type="number" step="any" id="additive_select_concentration" value="1">
+            </div>
+            <div class="col-md-2">
+                <select class="form-control" id="additive_select_unit" >
+                    {% for value,label in concentration_units %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary btn-sm form-control" id="add_additive_btn">+</button>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-danger btn-sm form-control" id="remove_additive_btn">-</button>
+            </div>
+        </div>
+
     </div>
 
 
@@ -83,7 +115,11 @@
                     </td>
                     <td>
                         <input type="hidden" name="preparation_method_pk" value="{{ p.preparation_method.pk }}">
-                        <input type="text" name="preparation_method_label" value="{{ p.preparation_method }}" disabled>
+                        <a target="_blank" name="preparation_method_label"
+                           {% if p.preparation_method %}
+                           href="{% url 'chemicaldb:experiments:experiments_nanoparticle:view_preparation_method' pk=p.preparation_method.pk %}"
+                            {% endif %}
+                        >{{ p.preparation_method }}</a>
                     </td>
                     <td name="material_column" np="{{ p.pk }}">
 
@@ -93,7 +129,7 @@
                                 <input type="hidden" name="material_pk" value="{{ material.material.pk }}">
                                 <input type="hidden" name="material_relative_content"
                                        value="{{ material.relative_content }}">
-                                <div>{{ material.material }} ({{ material.relative_content }})</div>
+                                <a href="{% url 'chemicaldb:substance_view' pk=material.material.pk %}" target="_blank">{{ material.material }} ({{ material.relative_content }})</a>
                             </div>
                         {% endfor %}
                     </td>
@@ -106,7 +142,8 @@
                                 <input type="hidden" name="additive_pk" value="{{ additive.material.pk }}">
                                 <input type="hidden" name="additive_concentration"
                                        value="{{ additive.concentration }}">
-                                <div>{{ additive.material }} ({{ additive.concentration }} {{ additive.get_concentration_unit_display }})</div>
+                                <input type="hidden" name="additive_unit" value="{{ additive.concentration_unit }}">
+                                <a href="{% url 'chemicaldb:substance_view' pk=additive.material.pk %}" target="_blank">{{ additive.material }} ({{ additive.concentration }} {{ additive.get_concentration_unit_display }})</a>
                             </div>
                         {% endfor %}
                     </td>
@@ -127,6 +164,17 @@
         let material_select_input = $('#material_select_input');
         let material_select_pk = $('#material_select_pk');
         let material_select_content = $('#material_select_content');
+
+        let additive_select_input=$('#additive_select_input');
+        let additive_select_last=$('#additive_select_last');
+        let additive_select_pk = $('#additive_select_pk');
+        let additive_select_concentration = $('#additive_select_concentration');
+        let additive_select_unit= $('#additive_select_unit');
+
+        function substance_link(pk) {
+            return "{% url 'chemicaldb:substance_view' pk='0000' %}".replace("0000",pk);
+        }
+
         //prep method set
         preparation_method_select.autocomplete_combobox();
 
@@ -134,7 +182,7 @@
 
         function reload_prep_methods() {
             get_api_search_results({model: "NanoparticlePreparationMethod"}, function (data) {
-                preparation_method_select.empty()
+                preparation_method_select.empty();
 
                 preparation_method_select.append('<option value="">None</option>');
                 for (let i = 0; i < data.results.length; i++) {
@@ -150,7 +198,12 @@
 
         $('#set_preparation_method').click(function () {
             selectors.filter(':checked').closest("tr").find("[name='preparation_method_pk']").val(preparation_method_select.val());
-            selectors.filter(':checked').closest("tr").find("[name='preparation_method_label']").val(preparation_method_select.find('option:selected').text());
+            let perpmethodentry = selectors.filter(':checked').closest("tr").find("[name='preparation_method_label']");
+            perpmethodentry.text(preparation_method_select.find('option:selected').text())
+            if(preparation_method_select.val())
+                perpmethodentry.attr("href","{% url 'chemicaldb:experiments:experiments_nanoparticle:view_preparation_method' pk="0000" %}".replace("0000",preparation_method_select.val()));
+            else
+                perpmethodentry.removeAttr("href");
         });
 
 
@@ -169,17 +222,100 @@
 
         material_select_last.focus(function () {
             material_select_last.hide();
-            material_select_input.val(material_select_last.val())
+            material_select_input.val(material_select_last.val());
             material_select_input.show();
-            material_select_input.click()
+            material_select_input.click();
 
-        })
+        });
 
         material_select_input.focusout(function () {
             material_select_input.hide();
             material_select_last.show();
-        })
+        });
 
+        $('#add_material_btn').click(function () {
+            if(material_select_pk.val()){
+                let mat_col = selectors.filter(':checked').closest("tr").find("[name='material_column']");
+                mat_col.find('[name="material_pk"]').filter('[value="'+material_select_pk.val()+'"]').closest('[name="material_entry"]').remove();
+                mat_col.append(
+                    '<div name="material_entry">' +
+                    '<input type="hidden" name="material_np" value="">\n' +
+                    '                                <input type="hidden" name="material_pk" value="'+material_select_pk.val()+'">\n' +
+                    '                                <input type="hidden" name="material_relative_content"\n' +
+                    '                                       value="'+material_select_content.val()+'">\n' +
+                    '                                <a href="'+substance_link(material_select_pk.val())+'" target="_blank">'+material_select_last.val()+' ('+material_select_content.val()+')'+'</a>' +
+                    '</div>'
+                );
+                mat_col.each(function () {
+                    $(this).find('[name="material_np"]').val(this.getAttribute("np"));
+                });
+            }
+        });
+
+        $('#remove_material_btn').click(function () {
+            if(material_select_pk.val()) {
+                let mat_col = selectors.filter(':checked').closest("tr").find("[name='material_column']");
+                mat_col.find('[name="material_pk"]').filter('[value="' + material_select_pk.val() + '"]').closest('[name="material_entry"]').remove();
+            }
+        });
+
+            //additive
+        additive_select_input.catcomplete({
+            source: api_search_result({model: "Substance"}),
+            minLength: 3,
+            select: function (event, ui) {
+                additive_select_last.val(ui.item.label);
+                additive_select_input.val(ui.item.label);
+                additive_select_pk.val(ui.item.value);
+                event.preventDefault();
+            }
+        });
+
+        additive_select_last.focus(function () {
+            additive_select_last.hide();
+            additive_select_input.val(additive_select_last.val());
+            additive_select_input.show();
+            additive_select_input.click();
+
+        });
+
+        additive_select_input.focusout(function () {
+            additive_select_input.hide();
+            additive_select_last.show();
+        });
+
+        $('#add_additive_btn').click(function () {
+            if(additive_select_pk.val()){
+                let mat_col = selectors.filter(':checked').closest("tr").find("[name='additive_column']");
+                mat_col.find('[name="additive_pk"]').filter('[value="' + additive_select_pk.val() + '"]').closest('[name="additive_entry"]').remove();
+                mat_col.append(
+                    '<div name="additive_entry">' +
+                    '<input type="hidden" name="additive_np" value="">\n' +
+                    '                                <input type="hidden" name="additive_pk" value="'+additive_select_pk.val()+'">\n' +
+                    '                                <input type="hidden" name="additive_concentration"\n' +
+                    '                                       value="'+additive_select_concentration.val()+'">\n' +
+                    '                                <input type="hidden" name="additive_unit"\n' +
+                    '                                       value="'+additive_select_unit.val()+'">\n' +
+                    '                                <a href="'+substance_link(additive_select_pk.val())+'" target="_blank">'+additive_select_last.val()+' ('+additive_select_concentration.val()+
+                    ' '+additive_select_unit.find('option:selected').text()+
+                    ')'+'</a>' +
+                    '</div>'
+                );
+
+                mat_col.each(function () {
+                    $(this).find('[name="additive_np"]').val(this.getAttribute("np"))
+                });
+            }
+        });
+
+        $('#remove_additive_btn').click(function () {
+            if(additive_select_pk.val()) {
+                let mat_col = selectors.filter(':checked').closest("tr").find("[name='additive_column']");
+                mat_col.find('[name="additive_pk"]').filter('[value="' + additive_select_pk.val() + '"]').closest('[name="additive_entry"]').remove();
+            }
+        });
+
+        //rest
         select_all.click(function () {
             selectors.prop('checked', this.checked);
         });
@@ -193,36 +329,9 @@
                 select_all.prop("indeterminate", true)
 
 
-        })
-
-        $('#add_material_btn').click(function () {
-            if(material_select_pk.val()){
-                let mat_col = selectors.filter(':checked').closest("tr").find("[name='material_column']")
-                mat_col.find('[name="material_pk"]').filter('[value="'+material_select_pk.val()+'"]').closest('[name="material_entry"]').remove()
-                mat_col.append(
-                    '<div name="material_entry">' +
-                    '<input type="hidden" name="material_np" value="">\n' +
-                    '                                <input type="hidden" name="material_pk" value="'+material_select_pk.val()+'">\n' +
-                    '                                <input type="hidden" name="material_relative_content"\n' +
-                    '                                       value="'+material_select_content.val()+'">\n' +
-                    '                                <div>'+material_select_last.val()+' ('+material_select_content.val()+')'+'</div>' +
-                    '</div>'
-                );
-                mat_col.each(function () {
-                    $(this).find('[name="material_np"]').val(this.getAttribute("np"))
-                })
-                console.log(mat_col);
-                console.log(material_select_last.val(),
-                material_select_pk.val())
-            }
-        })
-
-        $('#remove_material_btn').click(function () {
-            if(material_select_pk.val()) {
-                let mat_col = selectors.filter(':checked').closest("tr").find("[name='material_column']")
-                mat_col.find('[name="material_pk"]').filter('[value="' + material_select_pk.val() + '"]').closest('[name="material_entry"]').remove()
-            }
         });
+
+
     </script>
 
 

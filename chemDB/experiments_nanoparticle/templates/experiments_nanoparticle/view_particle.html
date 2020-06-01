@@ -43,12 +43,24 @@
 
     <div class="row">
         <div class="col-md-3"><b>Materials</b></div>
-        <div class="col-md-9">{{ np.materials }}</div>
+        <div class="col-md-9">
+            {% for  material in np.np_material_particle.all %}
+                <div>
+                <a href="{% url 'chemicaldb:substance_view' pk=material.material.pk %}">{{ material.material }} ({{ material.relative_content }})</a>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
     <div class="row">
         <div class="col-md-3"><b>Additives</b></div>
-        <div class="col-md-9">{{ np.additives }}</div>
+        <div class="col-md-9">
+            {% for  additive in np.np_additives_particle.all %}
+                <div>
+            <a href="{% url 'chemicaldb:substance_view' pk=additive.material.pk %}" target="_blank">{{ additive.material }} ({{ additive.concentration }} {{ additive.get_concentration_unit_display }})</a>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
     <div class="row">

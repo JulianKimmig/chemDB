@@ -2,10 +2,12 @@
 
 {% block content %}
 
+    {% if user.chemdbuser %}
     <div>
     <a href="{% url "chemicaldb:experiments:experiments_nanoparticle:get_batch_characterizations"%}">my batch characterizations  </a>
     </div>
     <div>
         <a href="{% url "chemicaldb:experiments:experiments_nanoparticle:batch_particle_creation"%}">batch particle creation </a>
     </div>
+    {% endif %}
 {% endblock %}
