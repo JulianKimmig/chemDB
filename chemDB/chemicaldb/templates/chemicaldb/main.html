@@ -1,5 +1,10 @@
 {% extends 'chemicaldb/base.html' %}
 
 {% block content %}
-    <a href="{% url "chemicaldb:experiments:main" %}">Experiments</a>
+    <div>
+        <a href="{% url "chemicaldb:experiments:main" %}">Experiments</a>
+    </div>
+    <div>
+        <a href="{% url "chemicaldb:chemicaldb_polymers:main" %}">Polymers</a>
+    </div>
 {% endblock %}

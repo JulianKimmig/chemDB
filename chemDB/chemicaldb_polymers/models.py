@@ -29,7 +29,7 @@ class Polymer(Substance):
     monomer_distribution = models.CharField(max_length=MonomerDistribution.max_length, choices=MonomerDistribution.choices,
                                             default=MonomerDistribution.STATISTICAL)
     distribution_parameter = models.FloatField(default=1)
-
+Polymer.register_substance_class()
 #    def __str__(self):
 
 

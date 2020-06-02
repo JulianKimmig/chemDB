@@ -2,9 +2,13 @@ import rdkit
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
+from django.utils.safestring import mark_safe
 
 from rdkit import Chem
 import rdkit.Chem.Descriptors as rdk_descriptors
+import rdkit.Chem.Draw
+from rdkit.Chem import rdDepictor
+from rdkit.Chem.Draw import rdMolDraw2D
 
 
 def _validate_structure_identifiers(structure):
@@ -56,6 +60,19 @@ def _validate_structure_mol(structure):
     return structure.get_mol() is not None
 
 
+def _validate_structre_iso_identifier(structure):
+    if structure.iso_smiles:
+        smile_mol = rdkit.Chem.MolFromSmiles(structure.iso_smiles)
+        new_smiles = rdkit.Chem.MolToSmiles(smile_mol, isomericSmiles=True)
+        structure.iso_smiles = new_smiles
+    if structure.standard_inchi:
+        inchi_mol = rdkit.Chem.MolFromInchi(structure.standard_inchi)
+        new_inchi = rdkit.Chem.MolToInchi(inchi_mol)
+        structure.standard_inchi = new_inchi
+    return True
+
+
+VALIDATION_ISO_IDENTIFIER = "iso_identifier", _validate_structre_iso_identifier
 VALIDATION_HAS_MOL = "structure_has_mol", _validate_structure_mol
 VALIDATION_IDENTIFIER = "structure_identifiers", _validate_structure_identifiers
 VALIDATION_MASS = "structure_mass", _validate_structure_mass
@@ -81,6 +98,7 @@ class Structure(models.Model):
         super().__init__(*args, **kwargs)
         self.mol = None
         self.validity_checks = {
+            VALIDATION_ISO_IDENTIFIER[0]: VALIDATION_ISO_IDENTIFIER[1],
             VALIDATION_HAS_MOL[0]: VALIDATION_HAS_MOL[1],
             VALIDATION_IDENTIFIER[0]: VALIDATION_IDENTIFIER[1],
             VALIDATION_MASS[0]: VALIDATION_MASS[1],
@@ -88,10 +106,11 @@ class Structure(models.Model):
 
     def get_mol(self):
         if self.mol is None:
-            if self.standard_inchi:
-                self.mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
-            elif self.iso_smiles:
+
+            if self.iso_smiles:
                 self.mol = rdkit.Chem.MolFromSmiles(self.iso_smiles)
+            elif self.standard_inchi:
+                    self.mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
         return self.mol
 
     def validate(self, save=True):
@@ -105,6 +124,17 @@ class Structure(models.Model):
             if save:
                 self.save()
         return self.valid
+
+    def structure_image(self):
+        mol = self.get_mol()
+        mc = Chem.Mol(mol.ToBinary())
+        if not mc.GetNumConformers():
+            rdDepictor.Compute2DCoords(mc)
+        drawer = rdMolDraw2D.MolDraw2DSVG(200,200)
+        drawer.DrawMolecule(mc)
+        drawer.FinishDrawing()
+        svg = drawer.GetDrawingText()
+        return mark_safe(svg)
 
     def __str__(self):
         name = self.names.first()

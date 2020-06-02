@@ -9,11 +9,19 @@ for model in [cdb_models.SimpleSubstance,
               ]:
     admin.site.register(model)
 
+class StructureAdminAdminStructureNameInline(admin.TabularInline):
+    model = cdb_models.StructureName
+
+class StructureAdmin(admin.ModelAdmin):
+    inlines = [
+        StructureAdminAdminStructureNameInline,
+    ]
+    readonly_fields = ["structure_image","valid"]
+
+admin.site.register(cdb_models.Structure,StructureAdmin)
 
 
-for model in [cdb_models.Structure,
-              cdb_models.StructureName,
-              ]:
+for model in []:
     admin.site.register(model)
 
 for model in [cdb_models.ChemdbUser,
