@@ -1,7 +1,10 @@
 from django.db import models
 
 # Create your models here.
-from chemicaldb.models import Structure, Substance
+from rdkit.Chem import rdDepictor, MolFromSmiles
+from rdkit.Chem.Draw import rdMolDraw2D
+
+from chemicaldb.models import Structure, Substance, mark_safe
 
 
 class PolymerStructureType(models.TextChoices):
@@ -13,6 +16,22 @@ class PolymerStructureType(models.TextChoices):
 
 class PolymerStructure(Structure):
     big_smiles = models.CharField(max_length=200, null=True, blank=True)
+
+    def __init__(self, *args, **kwargs):
+        self._meta.get_field('iso_smiles').default = False
+        super().__init__(*args, **kwargs)
+
+    def structure_image(self):
+        mol = MolFromSmiles(self.smiles*4)
+        #mc = Chem.Mol(mol.ToBinary())
+        if not mol.GetNumConformers():
+            rdDepictor.Compute2DCoords(mol)
+        drawer = rdMolDraw2D.MolDraw2DSVG(200,200)
+        drawer.DrawMolecule(mol)
+        drawer.FinishDrawing()
+        svg = drawer.GetDrawingText()
+        return mark_safe(svg)
+
 
 class MonomerDistribution(models.TextChoices):
     GRADIENT = 'GRADIENT', "gradient"

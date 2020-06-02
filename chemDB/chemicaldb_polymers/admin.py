@@ -1,16 +1,12 @@
 from django.contrib import admin
 
 # Register your models here.
+from chemicaldb.admin import StructureAdmin
 from chemicaldb.sub_models import StructureName
 from chemicaldb_polymers.models import Polymer, PolymerStructure
 
-class PolymerStructureAdminStructureNameInline(admin.TabularInline):
-    model = StructureName
-
-class PolymerStructureAdmin(admin.ModelAdmin):
-    inlines = [
-        PolymerStructureAdminStructureNameInline,
-    ]
+class PolymerStructureAdmin(StructureAdmin):
+    pass
 
 admin.site.register(PolymerStructure,PolymerStructureAdmin)
 

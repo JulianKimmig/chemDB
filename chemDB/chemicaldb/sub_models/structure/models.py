@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
+from polymorphic.models import PolymorphicModel
 
 from rdkit import Chem
 import rdkit.Chem.Descriptors as rdk_descriptors
@@ -78,7 +79,7 @@ VALIDATION_IDENTIFIER = "structure_identifiers", _validate_structure_identifiers
 VALIDATION_MASS = "structure_mass", _validate_structure_mass
 
 
-class Structure(models.Model):
+class Structure(PolymorphicModel):
     class Meta:
         permissions = (
             ('add structure', 'Add Structure'),
@@ -89,7 +90,7 @@ class Structure(models.Model):
     inchi_key = models.CharField(max_length=27, null=True, blank=True)
     molar_mass = models.FloatField(null=True, blank=True, )
     valid = models.BooleanField(default=True, editable=False)
-    iso_smiles= models.BooleanField(default=True)
+    iso_smiles= models.BooleanField(default=True,editable=False)
 
     # external references
     cas_number = models.CharField(max_length=12, unique=True, null=True, blank=True)
@@ -127,11 +128,11 @@ class Structure(models.Model):
 
     def structure_image(self):
         mol = self.get_mol()
-        mc = Chem.Mol(mol.ToBinary())
-        if not mc.GetNumConformers():
-            rdDepictor.Compute2DCoords(mc)
+        #mc = Chem.Mol(mol.ToBinary())
+        if not mol.GetNumConformers():
+            rdDepictor.Compute2DCoords(mol)
         drawer = rdMolDraw2D.MolDraw2DSVG(200,200)
-        drawer.DrawMolecule(mc)
+        drawer.DrawMolecule(mol)
         drawer.FinishDrawing()
         svg = drawer.GetDrawingText()
         return mark_safe(svg)
