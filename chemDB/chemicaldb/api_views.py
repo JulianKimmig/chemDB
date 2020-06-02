@@ -13,7 +13,7 @@ from chemicaldb.models import Structure
 class StructureSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Structure
-        fields = ['iso_smiles', 'standard_inchi', 'inchi_key', 'molar_mass', 'valid', 'cas_number', 'chemspider_id']
+        fields = ['smiles', 'standard_inchi', 'inchi_key', 'molar_mass', 'valid', 'cas_number', 'chemspider_id']
 
 
 class StructureViewSet(viewsets.ModelViewSet):

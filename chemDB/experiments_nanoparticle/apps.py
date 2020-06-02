@@ -10,3 +10,4 @@ class ExperimentsNanoparticleConfig(AppConfig):
         register_search_model(Nanoparticle,qs=["name__icontains","code__icontains"],fields=["name","code"])
 
         register_search_model(NanoparticlePreparationMethod,qs=["name__icontains"],fields=["name"])
+

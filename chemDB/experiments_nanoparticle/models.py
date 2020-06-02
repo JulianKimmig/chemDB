@@ -138,9 +138,6 @@ class Nanoparticle(Substance):
             NP_VALIDATION_PREPARATION[0]: NP_VALIDATION_PREPARATION[1]
         })
 
-Nanoparticle.register_substance_class()
-
-
 class NanoparticleForm(forms.ModelForm):
     class Meta:
         model = Nanoparticle

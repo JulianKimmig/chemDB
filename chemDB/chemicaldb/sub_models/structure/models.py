@@ -18,11 +18,11 @@ def _validate_structure_identifiers(structure):
     valid = True
 
     smiles = rdkit.Chem.MolToSmiles(mol, isomericSmiles=True)
-    if structure.iso_smiles:
-        if structure.iso_smiles != smiles:
+    if structure.smiles:
+        if rdkit.Chem.MolToSmiles(rdkit.Chem.MolFromSmiles(structure.smiles), isomericSmiles=True) != smiles:
             valid = False
     else:
-        structure.iso_smiles = smiles
+        structure.smiles = smiles
 
     inchi = rdkit.Chem.MolToInchi(mol)
     if structure.standard_inchi:
@@ -61,10 +61,10 @@ def _validate_structure_mol(structure):
 
 
 def _validate_structre_iso_identifier(structure):
-    if structure.iso_smiles:
-        smile_mol = rdkit.Chem.MolFromSmiles(structure.iso_smiles)
+    if structure.smiles and structure.iso_smiles:
+        smile_mol = rdkit.Chem.MolFromSmiles(structure.smiles)
         new_smiles = rdkit.Chem.MolToSmiles(smile_mol, isomericSmiles=True)
-        structure.iso_smiles = new_smiles
+        structure.smiles = new_smiles
     if structure.standard_inchi:
         inchi_mol = rdkit.Chem.MolFromInchi(structure.standard_inchi)
         new_inchi = rdkit.Chem.MolToInchi(inchi_mol)
@@ -84,11 +84,12 @@ class Structure(models.Model):
             ('add structure', 'Add Structure'),
         )
 
-    iso_smiles = models.CharField(max_length=200, null=True, blank=True)
+    smiles = models.CharField(max_length=200, null=True, blank=True)
     standard_inchi = models.TextField(null=True, blank=True)
     inchi_key = models.CharField(max_length=27, null=True, blank=True)
     molar_mass = models.FloatField(null=True, blank=True, )
     valid = models.BooleanField(default=True, editable=False)
+    iso_smiles= models.BooleanField(default=True)
 
     # external references
     cas_number = models.CharField(max_length=12, unique=True, null=True, blank=True)
@@ -106,9 +107,8 @@ class Structure(models.Model):
 
     def get_mol(self):
         if self.mol is None:
-
-            if self.iso_smiles:
-                self.mol = rdkit.Chem.MolFromSmiles(self.iso_smiles)
+            if self.smiles:
+                self.mol = rdkit.Chem.MolFromSmiles(self.smiles)
             elif self.standard_inchi:
                     self.mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
         return self.mol
@@ -143,10 +143,10 @@ class Structure(models.Model):
             if name:
                 return "{} ({})".format(self.cas_number, name)
             return self.cas_number
-        if self.iso_smiles:
+        if self.smiles:
             if name:
-                return "{} ({})".format(self.iso_smiles, name)
-            return self.iso_smiles
+                return "{} ({})".format(self.smiles, name)
+            return self.smiles
         return super().__str__()
 
 
