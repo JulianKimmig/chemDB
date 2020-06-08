@@ -37,6 +37,7 @@ class MonomerDistribution(models.TextChoices):
     GRADIENT = 'GRADIENT', "gradient"
     STATISTICAL = 'STATISTICAL', "statistical"
     BLOCK = 'BLOCK', "block"
+    MIXED = 'MIXED', "mixed"
 
 MonomerDistribution.max_length = 12
 
@@ -48,6 +49,9 @@ class Polymer(Substance):
     monomer_distribution = models.CharField(max_length=MonomerDistribution.max_length, choices=MonomerDistribution.choices,
                                             default=MonomerDistribution.STATISTICAL)
     distribution_parameter = models.FloatField(default=1)
+    starting_group=models.ForeignKey(Structure, on_delete=models.SET_NULL,null=True)
+    end_group=models.ForeignKey(Structure, on_delete=models.SET_NULL,null=True)
+
 
 
 
