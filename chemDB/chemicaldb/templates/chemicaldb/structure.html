@@ -1,0 +1,27 @@
+{% extends 'chemicaldb/base.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}
+    New Polymer
+{% endblock %}
+
+{% block content_title %}
+    Add Polymer
+{% endblock %}
+
+{% block content %}
+    <canvas id="smiles-canvas" width="400" height="400"></canvas>
+    {% crispy form %}
+{% endblock %}
+
+{% block javascript%}
+    <script>
+        let smiles_input = $('input[name="smiles"]');
+        smiles_input.on("input",function () {
+            $.get(
+                {% url "chemicaldb:api_smiles_to_image" %}
+            )
+        })
+    </script>
+{% endblock %}

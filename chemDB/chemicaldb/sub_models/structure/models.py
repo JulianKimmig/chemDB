@@ -1,4 +1,7 @@
 import rdkit
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from django import forms
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -10,6 +13,8 @@ import rdkit.Chem.Descriptors as rdk_descriptors
 import rdkit.Chem.Draw
 from rdkit.Chem import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
+
+from ...models import ValidationModel
 
 
 def _validate_structure_identifiers(structure):
@@ -79,7 +84,7 @@ VALIDATION_IDENTIFIER = "structure_identifiers", _validate_structure_identifiers
 VALIDATION_MASS = "structure_mass", _validate_structure_mass
 
 
-class Structure(PolymorphicModel):
+class Structure(ValidationModel):
     class Meta:
         permissions = (
             ('add structure', 'Add Structure'),
@@ -89,7 +94,6 @@ class Structure(PolymorphicModel):
     standard_inchi = models.TextField(null=True, blank=True)
     inchi_key = models.CharField(max_length=27, null=True, blank=True)
     molar_mass = models.FloatField(null=True, blank=True, )
-    valid = models.BooleanField(default=True, editable=False)
     iso_smiles= models.BooleanField(default=True,editable=False)
 
     # external references
@@ -99,12 +103,12 @@ class Structure(PolymorphicModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mol = None
-        self.validity_checks = {
+        self.validity_checks.update({
             VALIDATION_ISO_IDENTIFIER[0]: VALIDATION_ISO_IDENTIFIER[1],
             VALIDATION_HAS_MOL[0]: VALIDATION_HAS_MOL[1],
             VALIDATION_IDENTIFIER[0]: VALIDATION_IDENTIFIER[1],
             VALIDATION_MASS[0]: VALIDATION_MASS[1],
-        }
+        })
 
     def get_mol(self):
         if self.mol is None:
@@ -113,18 +117,6 @@ class Structure(PolymorphicModel):
             elif self.standard_inchi:
                     self.mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
         return self.mol
-
-    def validate(self, save=True):
-        valid = True
-        for check_name, check in self.validity_checks.items():
-            valid = valid and check(self)
-            if not valid:
-                break
-        if self.valid != valid:
-            self.valid = valid
-            if save:
-                self.save()
-        return self.valid
 
     def structure_image(self):
         mol = self.get_mol()
@@ -151,13 +143,6 @@ class Structure(PolymorphicModel):
         return super().__str__()
 
 
-@receiver(pre_save)
-def my_callback(sender, instance: Structure, *args, **kwargs):
-    if not issubclass(sender, Structure):
-        return
-    instance.validate(save=False)
-
-
 class StructureName(models.Model):
     structure = models.ForeignKey(Structure, on_delete=models.CASCADE, related_name="names")
     name = models.CharField(max_length=200)
@@ -167,3 +152,30 @@ class StructureName(models.Model):
 
 
 from .submodels import *
+
+
+class StructureForm(forms.ModelForm):
+    class Meta:
+        model = Structure
+        exclude = []
+
+    def __init__(self,chem_db_user=None,changeable=False, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        if changeable:
+            self.helper.form_method = 'post'
+            self.helper.add_input(Submit('submit', 'save'))
+
+class StructureSmilesForm(forms.ModelForm):
+    class Meta:
+        model = Structure
+        fields = ['smiles']
+
+    def __init__(self,chem_db_user=None,changeable=False, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        if changeable:
+            self.helper.form_method = 'post'
+            self.helper.add_input(Submit('submit', 'save'))

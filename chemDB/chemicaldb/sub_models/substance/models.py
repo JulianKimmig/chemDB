@@ -1,5 +1,8 @@
 from inspect import isclass
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from django import forms
 from django.db import models
 
 # Create your models here.
@@ -38,6 +41,24 @@ class Substance(PolymorphicModel):
         return self.valid
 
 
+class SubstanceForm(forms.ModelForm):
+    class Meta:
+        model = Substance
+        exclude = []
+
+    def __init__(self,chem_db_user=None,changeable=False, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        if changeable:
+            self.helper.form_method = 'post'
+            self.helper.add_input(Submit('submit', 'save'))
+        if chem_db_user:
+            self.fields["user"].initial = chem_db_user.pk
+        self.fields["user"].widget = forms.HiddenInput()
+#        initial={'owner':chem_db_user.pk,"short_name":}
+#   self.fields['raw_data'] = forms.FileInput()
+
 from .submodels import *
 
 @receiver(pre_save)
@@ -48,6 +69,11 @@ def my_callback(sender, instance: Substance, *args, **kwargs):
 
 class SimpleSubstance(Substance):
     structure = models.ForeignKey(Structure, on_delete=models.CASCADE)
+
+class SimpleSubstanceForm(SubstanceForm):
+    class Meta:
+        model = SimpleSubstance
+        exclude = []
 
 class MixedSubstance(Substance):
     structures = models.ManyToManyField(Structure)

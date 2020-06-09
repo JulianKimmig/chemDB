@@ -1,13 +1,20 @@
 from functools import partial
 
+import rdkit
+import rdkit.Chem
+import rdkit.Chem.PandasTools
+import rdkit.Chem.Descriptors
+
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from rdkit.Chem import rdDepictor
+from rdkit.Chem.Draw import rdMolDraw2D
 from rest_framework import routers, serializers, viewsets, permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from chemicaldb.models import Structure
+from chemicaldb.models import Structure, mark_safe
 
 
 class StructureSerializer(serializers.HyperlinkedModelSerializer):
@@ -128,3 +135,17 @@ class SearchViewSet(APIView):
 
 router = routers.DefaultRouter()
 router.register(r'structure', StructureViewSet)
+
+
+def smiles_to_image(requests):
+    mol = rdkit.Chem.MolFromSmiles(requests.GET.get("smiles"))
+    print(rdkit.__version__)
+    #return HttpResponse(str(mol))
+    #mc = Chem.Mol(mol.ToBinary())
+    if not mol.GetNumConformers():
+        rdDepictor.Compute2DCoords(mol)
+    drawer = rdMolDraw2D.MolDraw2DSVG(200,200)
+    drawer.DrawMolecule(mol)
+    drawer.FinishDrawing()
+    svg = drawer.GetDrawingText()
+    return HttpResponse(svg)
