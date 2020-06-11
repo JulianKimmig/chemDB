@@ -1,19 +1,16 @@
 import rdkit
+import rdkit.Chem.Descriptors as rdk_descriptors
+import rdkit.Chem.Draw
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django import forms
 from django.db import models
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 from django.utils.safestring import mark_safe
-from polymorphic.models import PolymorphicModel
-
 from rdkit import Chem
-import rdkit.Chem.Descriptors as rdk_descriptors
-import rdkit.Chem.Draw
 from rdkit.Chem import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
 
+from .. import ChemDbShareModel
 from ...models import ValidationModel
 
 
@@ -84,7 +81,10 @@ VALIDATION_IDENTIFIER = "structure_identifiers", _validate_structure_identifiers
 VALIDATION_MASS = "structure_mass", _validate_structure_mass
 
 
-class Structure(ValidationModel):
+class Structure(ValidationModel, ChemDbShareModel):
+    PUBLIC_TO_USER = True
+    PUBLIC = True
+
     class Meta:
         permissions = (
             ('add structure', 'Add Structure'),
@@ -94,7 +94,7 @@ class Structure(ValidationModel):
     standard_inchi = models.TextField(null=True, blank=True)
     inchi_key = models.CharField(max_length=27, null=True, blank=True)
     molar_mass = models.FloatField(null=True, blank=True, )
-    iso_smiles= models.BooleanField(default=True,editable=False)
+    iso_smiles = models.BooleanField(default=True, editable=False)
 
     # external references
     cas_number = models.CharField(max_length=12, unique=True, null=True, blank=True)
@@ -115,15 +115,15 @@ class Structure(ValidationModel):
             if self.smiles:
                 self.mol = rdkit.Chem.MolFromSmiles(self.smiles)
             elif self.standard_inchi:
-                    self.mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
+                self.mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
         return self.mol
 
     def structure_image(self):
         mol = self.get_mol()
-        #mc = Chem.Mol(mol.ToBinary())
+        # mc = Chem.Mol(mol.ToBinary())
         if not mol.GetNumConformers():
             rdDepictor.Compute2DCoords(mol)
-        drawer = rdMolDraw2D.MolDraw2DSVG(200,200)
+        drawer = rdMolDraw2D.MolDraw2DSVG(200, 200)
         drawer.DrawMolecule(mol)
         drawer.FinishDrawing()
         svg = drawer.GetDrawingText()
@@ -150,8 +150,8 @@ class StructureName(models.Model):
     def __str__(self):
         return self.name
 
-
-from .submodels import *
+    class Meta:
+        unique_together = ("structure", "name")
 
 
 class StructureForm(forms.ModelForm):
@@ -159,23 +159,27 @@ class StructureForm(forms.ModelForm):
         model = Structure
         exclude = []
 
-    def __init__(self,chem_db_user=None,changeable=False, *args, **kwargs):
-
+    def __init__(self, chem_db_user=None, changeable=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         if changeable:
             self.helper.form_method = 'post'
             self.helper.add_input(Submit('submit', 'save'))
 
+
 class StructureSmilesForm(forms.ModelForm):
+    names = forms.CharField(widget=forms.Textarea, required=False)
+
     class Meta:
         model = Structure
         fields = ['smiles']
 
-    def __init__(self,chem_db_user=None,changeable=False, *args, **kwargs):
-
+    def __init__(self, chem_db_user=None, changeable=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
+        if self.instance:
+            self.fields["names"].initial = "\n".join([n.name for n in self.instance.names.all()])
+
         if changeable:
             self.helper.form_method = 'post'
             self.helper.add_input(Submit('submit', 'save'))
