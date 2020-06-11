@@ -7,7 +7,11 @@
     <a href="{% url "chemicaldb:chemicaldb_polymers:new_polymer"%}">create new polymer entry</a>
     </div>
         <div>
+            <a href="{% url "chemicaldb:chemicaldb_polymers:new_repeating_unit"%}">create repeating unit</a>
+        </div>
+        <div>
             <a href="{% url "chemicaldb:chemicaldb_polymers:new_start_end_group"%}">create start end group</a>
         </div>
+
     {% endif %}
 {% endblock %}

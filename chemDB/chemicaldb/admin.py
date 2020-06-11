@@ -6,6 +6,7 @@ import chemicaldb.models as cdb_models
 for model in [cdb_models.SimpleSubstance,
               cdb_models.MixedSubstance,
                 cdb_models.Substance,
+                cdb_models.StructureName
               ]:
     admin.site.register(model)
 

@@ -139,7 +139,6 @@ router.register(r'structure', StructureViewSet)
 
 def smiles_to_image(requests):
     mol = rdkit.Chem.MolFromSmiles(requests.GET.get("smiles"))
-    print(rdkit.__version__)
     #return HttpResponse(str(mol))
     #mc = Chem.Mol(mol.ToBinary())
     if not mol.GetNumConformers():

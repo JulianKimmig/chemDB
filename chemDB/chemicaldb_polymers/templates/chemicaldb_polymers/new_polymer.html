@@ -11,5 +11,33 @@
 {% endblock %}
 
 {% block content %}
+    <div id="smiles_image"></div>
+
     {% crispy polymer_form %}
+{% endblock %}
+
+{% block javascript%}
+    <script>
+        let smiles_input = $('input[name="smiles"]');
+        smiles_input.on("input",function () {
+            $.get(
+                "{% url "chemicaldb:api_smiles_to_image" %}",
+                { type:"svg",
+                    smiles:smiles_input.val()
+                },
+                function (data) {
+                    $('#smiles_image').empty().append(data)
+                }
+            )
+        });
+        $.get(
+            "{% url "chemicaldb:api_smiles_to_image" %}",
+            { type:"svg",
+                smiles:smiles_input.val()
+            },
+            function (data) {
+                $('#smiles_image').empty().append(data)
+            }
+        );
+    </script>
 {% endblock %}

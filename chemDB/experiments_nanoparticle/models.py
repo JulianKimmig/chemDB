@@ -1,5 +1,6 @@
+from crispy_forms.bootstrap import AppendedText, PrependedText
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
+from crispy_forms.layout import Submit, Layout
 from django import forms
 from django.db import models
 
@@ -76,8 +77,8 @@ class NanoparticleBatchCharacterizationForm(forms.ModelForm):
         self.helper.add_input(Submit('submit', 'Continue'))
         self.fields["owner"].initial = chem_db_user.pk
         self.fields["owner"].widget = forms.HiddenInput()
-        self.fields["short_name"].widget.attrs['placeholder']=chem_db_user.prefix_string("np_data")
-        self.fields["short_name"].help_text ="if does not start with '{}' the prefix will be added automatically.So you don't have to enter it".format(chem_db_user.get_prefix())
+        self.helper.layout = Layout(*list(self.fields.keys()))
+        self.helper['short_name'].wrap(PrependedText, chem_db_user.get_prefix())
 #        initial={'owner':chem_db_user.pk,"short_name":}
     #   self.fields['raw_data'] = forms.FileInput()
 

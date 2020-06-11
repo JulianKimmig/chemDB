@@ -3,15 +3,15 @@
 
 
 {% block title %}
-    New Polymer
+    Structure
 {% endblock %}
 
 {% block content_title %}
-    Add Polymer
+    Structure
 {% endblock %}
 
 {% block content %}
-    <canvas id="smiles-canvas" width="400" height="400"></canvas>
+    <div id="smiles_image"></div>
     {% crispy form %}
 {% endblock %}
 
@@ -20,8 +20,38 @@
         let smiles_input = $('input[name="smiles"]');
         smiles_input.on("input",function () {
             $.get(
-                {% url "chemicaldb:api_smiles_to_image" %}
+                "{% url "chemicaldb:api_smiles_to_image" %}",
+                { type:"svg",
+                    smiles:smiles_input.val()
+                },
+                function (data) {
+                    $('#smiles_image').empty().append(data)
+                }
             )
-        })
+        });
+        $.get(
+            "{% url "chemicaldb:api_smiles_to_image" %}",
+            { type:"svg",
+                smiles:smiles_input.val()
+            },
+            function (data) {
+                $('#smiles_image').empty().append(data)
+            }
+        );
     </script>
+{% endblock %}
+
+{% block stylesheet %}
+    <style>
+    textarea {
+        background-image: linear-gradient(#F1F1F1 50%, #F9F9F9 50%);
+        background-size: 100% 4rem;
+        border: 1px solid #CCC;
+        width: 100%;
+        height: 400px;
+        line-height: 2rem;
+        margin: 0 auto;
+        padding: 4px 8px;
+    }
+    </style>
 {% endblock %}
