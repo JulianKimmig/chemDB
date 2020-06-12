@@ -6,37 +6,17 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from polymorphic.models import PolymorphicModel
 
-from .. import Structure, ChemdbUser
+from .. import Structure, ChemdbUser, ChemDbShareModel, ValidationModel
 
 
-class Substance(PolymorphicModel):
+class Substance(PolymorphicModel,ValidationModel,ChemDbShareModel):
     name = models.CharField(max_length=64)
-    code = models.CharField(max_length=24, unique=True, null=True,)
-    user = models.ForeignKey(ChemdbUser, on_delete=models.SET_NULL, null=True)
-    valid = models.BooleanField(default=False,editable=False)
 
     def __str__(self):
         if self.code:
             return "{} ({})".format(self.code,self.name)
         else:
             return self.name
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.validity_checks={}
-
-    def validate(self, save=True):
-        valid = True
-        for check_name, check in self.validity_checks.items():
-            valid = valid and check(self)
-            if not valid:
-                break
-        if self.valid != valid:
-            self.valid = valid
-            if save:
-                self.save()
-        return self.valid
-
 
 from .submodels import *
 
