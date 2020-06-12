@@ -1,7 +1,7 @@
-from django.utils import timezone
 from django.db import models
+from django.utils import timezone
 
-from chemicaldb.sub_models import ChemdbUser
+from chemicaldb.sub_models import ChemdbUser, ChemDbShareModel
 
 
 class ConcentrationUnits(models.TextChoices):
@@ -12,10 +12,9 @@ class ConcentrationUnits(models.TextChoices):
 ConcentrationUnits.max_length = 3
 
 
-class GeneraExperiment(models.Model):
+class GeneraExperiment(ChemDbShareModel):
     name = models.CharField(max_length=64)
-    procedure = models.TextField(default="",blank=True)
-    owner = models.ForeignKey(ChemdbUser, null=True, on_delete=models.SET_NULL)
+    procedure = models.TextField(default="", blank=True)
 
     def __str__(self):
         return self.name

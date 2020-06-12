@@ -9,6 +9,7 @@ class ChemdbInstitute(models.Model):
     short = models.CharField(max_length=4, unique=True)
     parent_institute = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, related_name="child_institutes",
                                          blank=True)
+    admin = models.ManyToManyField("ChemdbUser", related_name="administrating_institutes")
 
     def __str__(self):
         return "{} ({})".format(self.name, self.get_short())
@@ -35,8 +36,8 @@ class ChemdbInstitute(models.Model):
         return self.short
 
     def is_parent(self, other_institute):
-        for c in self.get_all_child(stop_at=lambda c: c.pk == other_institute.pk):
-            if c.pk == other_institute.pk:
+        for child in self.get_all_child(stop_at=lambda c: c.pk == other_institute.pk):
+            if child.pk == other_institute.pk:
                 return True
         return False
 
@@ -75,16 +76,18 @@ class ChemdbUser(models.Model):
 class ChemDbShareModel(models.Model):
     PUBLIC_TO_USER = True
     PUBLIC = True
-    owner = models.ForeignKey(ChemdbUser, on_delete=models.SET_NULL, null=True,related_name="%(app_label)s_%(class)s_owner")
-    admin = models.ManyToManyField(ChemdbUser,related_name="%(app_label)s_%(class)s_admin")
 
-    can_edit_user = models.ManyToManyField(ChemdbUser,related_name="%(app_label)s_%(class)s_can_edit")
-    can_edit_institute = models.ManyToManyField(ChemdbInstitute,related_name="%(app_label)s_%(class)s_edit_institute")
-    can_view_user = models.ManyToManyField(ChemdbUser,related_name="%(app_label)s_%(class)s_can_view")
-    can_view_institute = models.ManyToManyField(ChemdbInstitute,related_name="%(app_label)s_%(class)s_view_institute")
+    owner = models.ForeignKey(ChemdbUser, on_delete=models.SET_NULL, null=True,
+                              related_name="%(app_label)s_%(class)s_owner")
+    admin = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_admin")
+
+    can_edit_user = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_can_edit")
+    can_edit_institute = models.ManyToManyField(ChemdbInstitute, related_name="%(app_label)s_%(class)s_edit_institute")
+    can_view_user = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_can_view")
+    can_view_institute = models.ManyToManyField(ChemdbInstitute, related_name="%(app_label)s_%(class)s_view_institute")
 
     public_to_user = models.BooleanField()
-    public=models.BooleanField()
+    public = models.BooleanField()
 
     code = models.CharField(max_length=64)
     code_prefix = models.CharField(max_length=64)
@@ -103,7 +106,15 @@ class ChemDbShareModel(models.Model):
         if self.can_view_institute.filter(pk=chemdb_user.institute.pk).exists():
             return True
 
+        for i in chemdb_user.administrating_institutes.all():
+            if i == self.owner.institute:
+                return True
+            if i.is_parent(self.owner.institute):
+                return True
+
         for i in self.can_view_institute.all():
+            if i == chemdb_user.institute:
+                return True
             if i.is_parent(chemdb_user.institute):
                 return True
 
@@ -119,7 +130,15 @@ class ChemDbShareModel(models.Model):
         if self.can_edit_institute.filter(pk=chemdb_user.institute.pk).exists():
             return True
 
+        for i in chemdb_user.administrating_institutes.all():
+            if i == self.owner.institute:
+                return True
+            if i.is_parent(self.owner.institute):
+                return True
+
         for i in self.can_edit_institute.all():
+            if i == chemdb_user.institute:
+                return True
             if i.is_parent(chemdb_user.institute):
                 return True
 
@@ -136,6 +155,6 @@ def code_checker(sender, instance: ChemDbShareModel, *args, **kwargs):
     if instance.owner:
         instance.code_prefix = instance.owner.get_prefix()
     if instance.public_to_user is None:
-        instance.public_to_user=instance.PUBLIC_TO_USER
+        instance.public_to_user = instance.PUBLIC_TO_USER
     if instance.public is None:
-        instance.public=instance.PUBLIC
+        instance.public = instance.PUBLIC

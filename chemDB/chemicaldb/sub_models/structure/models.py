@@ -1,12 +1,8 @@
 import rdkit
-import rdkit.Chem.Descriptors as rdk_descriptors
+import rdkit.Chem.Descriptors
 import rdkit.Chem.Draw
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
-from django import forms
 from django.db import models
 from django.utils.safestring import mark_safe
-from rdkit import Chem
 from rdkit.Chem import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
 
@@ -49,7 +45,7 @@ def _validate_structure_mass(structure):
         return False
     valid = True
 
-    mass = rdk_descriptors.MolWt(mol)
+    mass = rdkit.Chem.Descriptors.MolWt(mol)
     if structure.molar_mass:
         if structure.molar_mass != mass:
             valid = False
@@ -153,33 +149,3 @@ class StructureName(models.Model):
     class Meta:
         unique_together = ("structure", "name")
 
-
-class StructureForm(forms.ModelForm):
-    class Meta:
-        model = Structure
-        exclude = []
-
-    def __init__(self, chem_db_user=None, changeable=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        if changeable:
-            self.helper.form_method = 'post'
-            self.helper.add_input(Submit('submit', 'save'))
-
-
-class StructureSmilesForm(forms.ModelForm):
-    names = forms.CharField(widget=forms.Textarea, required=False)
-
-    class Meta:
-        model = Structure
-        fields = ['smiles']
-
-    def __init__(self, chem_db_user=None, changeable=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        if self.instance:
-            self.fields["names"].initial = "\n".join([n.name for n in self.instance.names.all()])
-
-        if changeable:
-            self.helper.form_method = 'post'
-            self.helper.add_input(Submit('submit', 'save'))
