@@ -1,7 +1,9 @@
+import os
+
 from django.db import models
 from django.utils import timezone
 
-from chemicaldb.sub_models import ChemdbUser, ChemDbShareModel
+from chemicaldb.sub_models import ChemdbUser, ChemDbShareModel, receiver
 
 
 class ConcentrationUnits(models.TextChoices):
@@ -61,6 +63,13 @@ class ExperimentRawData(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.name, self.experiment)
+
+
+@receiver(models.signals.post_delete, sender=ExperimentRawData)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    if instance.raw_data:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
 
 
 class DataTypesChoices(models.TextChoices):
