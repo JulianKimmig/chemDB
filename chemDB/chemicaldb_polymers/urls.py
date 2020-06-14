@@ -5,6 +5,10 @@ app_name="chemicaldb_polymers"
 from . import views
 urlpatterns = [
     path("",views.main,name="main"),
+    path("structures",views.structures_main,name="structures_main"),
+    path("new_polymer_structure",views.NewPolymerStructure.as_view(),name="new_polymer_structure"),
+
+
     path("new_polymer",views.NewPolymer.as_view(),name="new_polymer"),
     path("startendgroup",views.StartEndGroupEdit.as_view(),name="new_start_end_group"),
     path("startendgroup/<pk>",views.StartEndGroupEdit.as_view(),name="edit_start_end_group"),

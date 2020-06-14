@@ -1,0 +1,16 @@
+{% extends 'chemicaldb/base.html' %}
+
+{% block title %}
+   chemdb - new polymer structure
+{% endblock %}
+
+{% block content_title %}
+    Add polymer structure
+    <form method="post">
+    <div class="form-group">
+        <label>start group</label>
+        <div class="col-md-4" name="starting_group" type="search_model_autocomplete" model="">
+        </div>
+    </div>
+    </form>
+{% endblock %}

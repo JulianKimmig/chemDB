@@ -12,6 +12,16 @@ from chemicaldb_polymers.models import NewPolymerForm, StartEndGroup, RepeatingU
 def main(request):
     return render(request, "chemicaldb_polymers/main.html")
 
+def structures_main(request):
+    return render(request, "chemicaldb_polymers/structures_main.html")
+
+class NewPolymerStructure(View):
+    def get(self, request):
+        chem_db_user = request.user.chemdbuser
+        context = {"polymer_form": NewPolymerForm(chem_db_user=chem_db_user, changeable=True)}
+        return render(request, "chemicaldb_polymers/new_polymer_structure.html", context)
+
+
 
 class NewPolymer(View):
     def get(self, request):
@@ -110,3 +120,6 @@ class StartEndGroupEdit(View):
 
         context = {"form": form}
         return render(request, "chemicaldb/structure_edit.html", context=context)
+
+
+
