@@ -1,0 +1,28 @@
+{% extends 'chemicaldb/base.html' %}
+{% load static %}
+{% block title %}
+    chemicalDB - structures
+{% endblock %}
+{% block content_title %}
+    NOT IMPLEMENTED
+{% endblock %}
+{% block content %}
+    <div id="results">
+
+    </div>
+    <div id="pages"></div>
+{% endblock %}
+{% block javascript %}
+    <script>
+        search_options={
+            model:"Structure"
+        };
+        function search(){
+            $.get("{% url 'chemicaldb:api_search' %}",search_options,function(results){
+                console.log(results);
+            });
+        }
+        search();
+    </script>
+{% endblock %}
+

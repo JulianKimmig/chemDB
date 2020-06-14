@@ -1,0 +1,30 @@
+<svg width="756" height="580" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     overflow="hidden">
+    <defs>
+        <clipPath id="clip0">
+            <path d="M0 0 756 0 756 756 0 756Z" fill-rule="evenodd" clip-rule="evenodd"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#clip0)">
+        <path d="M12 87.5C12 50.2208 41.7731 20 78.5 20 115.227 20 145 50.2208 145 87.5 145 124.779 115.227 155 78.5 155 41.7731 155 12 124.779 12 87.5Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+        <path d="M145 120.5C145 83.2208 174.549 53 211 53 247.451 53 277 83.2208 277 120.5 277 157.779 247.451 188 211 188 174.549 188 145 157.779 145 120.5Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+        <path d="M277 87.5C277 50.2208 306.549 20 343 20 379.451 20 409 50.2208 409 87.5 409 124.779 379.451 155 343 155 306.549 155 277 124.779 277 87.5Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+        <path d="M366 192.5C366 155.221 395.549 125 432 125 468.451 125 498 155.221 498 192.5 498 229.779 468.451 260 432 260 395.549 260 366 229.779 366 192.5Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill-rule="evenodd"/>
+        <path d="M488 130C488 92.9969 517.549 63 554 63 590.451 63 620 92.9969 620 130 620 167.003 590.451 197 554 197 517.549 197 488 167.003 488 130Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+        <path d="M318 321C318 283.997 347.549 254 384 254 420.451 254 450 283.997 450 321 450 358.003 420.451 388 384 388 347.549 388 318 358.003 318 321Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+        <path d="M233 427C233 389.997 262.773 360 299.5 360 336.227 360 366 389.997 366 427 366 464.003 336.227 494 299.5 494 262.773 494 233 464.003 233 427Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+        <path d="M608 193.5C608 156.221 637.773 126 674.5 126 711.227 126 741 156.221 741 193.5 741 230.779 711.227 261 674.5 261 637.773 261 608 230.779 608 193.5Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+        <path d="M341 504.5C341 467.221 370.549 437 407 437 443.451 437 473 467.221 473 504.5 473 541.779 443.451 572 407 572 370.549 572 341 541.779 341 504.5Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill-rule="evenodd"/>
+        <path d="M474 493.5C474 456.221 503.773 426 540.5 426 577.227 426 607 456.221 607 493.5 607 530.779 577.227 561 540.5 561 503.773 561 474 530.779 474 493.5Z"
+              stroke="#000000" stroke-width="4.00088" stroke-miterlimit="8" fill="#FFFFFF" fill-rule="evenodd"/>
+    </g>
+</svg>

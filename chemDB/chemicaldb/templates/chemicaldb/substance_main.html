@@ -1,0 +1,18 @@
+{% extends 'chemicaldb/base.html' %}
+{% load static %}
+{% block title %}
+    chemicalDB - substances
+{% endblock %}
+
+{% block content_title %}
+    Substances
+{% endblock %}
+
+{% block content %}
+    Substances are "real life" chemcials. A real sample of anything can relate to a substance, which has one or more underling <a href="{% url 'chemicaldb:structures_main' %}">structures</a>.
+        <hr>
+    <h5>Plugins</h5>
+
+
+
+{% endblock %}

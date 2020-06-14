@@ -78,18 +78,19 @@ def _search(query, model, queries, search_fields=None):
     return model.objects.filter(obj_query).distinct().all()
 
 
-def register_search_model(model, qs=[], fields=[], name=None):
+def register_search_model(model, qs=[], fields=[], name=None,return_map=None):
     model_class = model.__module__ + "." + model.__name__
     qs.append(("pk", int))
     qs = list(set(qs))
     if name is None:
         name = model.__name__
     SEARCHABLE_MODELS[name] = (
-        (model, partial(_search, model=model, queries=qs), fields, model_class)
+        (model, partial(_search, model=model, queries=qs), fields, model_class,return_map)
     )
 
 
 def search(request):
+    print(dict(request.GET))
     query = request.GET.get("q","")
     models = request.GET.get("model")
     search_fields = request.GET.get("sf")
@@ -102,9 +103,11 @@ def search(request):
         models = list(SEARCHABLE_MODELS.keys())
     results = []
     if query is not None:
-        for model_name, (model, model_search, model_fields, model_class) in SEARCHABLE_MODELS.items():
+        for model_name, (model, model_search, model_fields, model_class,return_map) in SEARCHABLE_MODELS.items():
             if model_name in models:
                 model_results = model_search(query, search_fields=search_fields)
+                if return_map:
+                    model_results=[return_map]
 
                 model_data = [
                     {**{'__name__': model_name, '__class__': model_class, "__str__": str(res), "pk": res.pk},

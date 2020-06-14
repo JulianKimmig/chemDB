@@ -1,0 +1,41 @@
+{% extends 'chemicaldb/base.html' %}
+{% load static %}
+{% block title %}
+    chemicalDB - structures
+{% endblock %}
+
+{% block content_title %}
+    Structures
+{% endblock %}
+
+{% block content %}
+    Structures are the basic abstract chemical representation of a <a href="{% url 'chemicaldb:substance_main' %}">substance</a>
+    (to which all experimental data - e.g. melting point, NMR, etc.- are linked).
+    <div>
+        <a class="imagebutton  col-md-3 btn btn-primary" href="{% url "chemicaldb:structures_browse" %}">
+            <div>
+                <img src="{% static 'chemicaldb/list-searching-variant.svg' %}">
+            </div>
+            <div>
+                Browse
+            </div>
+        </a>
+    </div>
+        <hr>
+    <h5>Plugins</h5>
+        {% for name,data in structure_plugins.items %}
+            <a class="imagebutton  col-md-3 btn btn-primary" href="{{data.link}}">
+            {% if data.image %}
+                <div>
+                    <img src="{{data.image}}" alt="{{ data.title }} image">
+                </div>
+            {% endif %}
+                <div>
+                    {{data.title}}
+                </div>
+            </a>
+        {% endfor %}
+
+
+
+{% endblock %}

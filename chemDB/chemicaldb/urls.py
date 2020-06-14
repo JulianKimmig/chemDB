@@ -11,6 +11,12 @@ urlpatterns = [
 
     path('', views.main_view, name ="main"),
     path('search', views.main_view, name ="search"), # TODO: implement search page
+
+    path('substances', views.substance_main, name ="substance_main"),
+
+    path('structures', views.structures_main, name ="structures_main"),
+    path('structures/browse', views.structures_browse, name ="structures_browse"),
+
     path('substance/<pk>', views.substance_view, name ="substance_view"),
 
     path('api/', include(api_urls)),

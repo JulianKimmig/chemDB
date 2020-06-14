@@ -1,10 +1,28 @@
 {% extends 'chemicaldb/base.html' %}
+{% load static %}
+
+{% block title %}
+    chemicalDB
+{% endblock %}
 
 {% block content %}
     <div>
-        <a href="{% url "chemicaldb:experiments:main" %}">Experiments</a>
-    </div>
-    <div>
-        <a href="{% url "chemicaldb:chemicaldb_polymers:main" %}">Polymers</a>
+            <a class="imagebutton col-md-3 btn btn-primary" href="{% url 'chemicaldb:structures_main' %}">
+                <div>
+                    <img src="{% static 'chemicaldb/structure_button.svg' %}">
+                </div>
+                    <div>
+                        Structures
+                    </div>
+            </a>
+
+        <a class="imagebutton  col-md-3 btn btn-primary" href="{% url "chemicaldb:experiments:main" %}">
+            <div>
+                <img src="{% static 'chemicaldb/experiments.svg' %}">
+            </div>
+            <div>
+                Experiments
+            </div>
+        </a>
     </div>
 {% endblock %}
