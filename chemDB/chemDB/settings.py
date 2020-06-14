@@ -178,3 +178,5 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 #    )
 # )
 aware_datetime = make_aware(datetime.datetime.now())
+
+LOGIN_REDIRECT_URL ="/"
