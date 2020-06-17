@@ -11,18 +11,27 @@
                 <div>
                     <img src="{% static 'chemicaldb/structure_button.svg' %}">
                 </div>
-                    <div>
+                    <span>
                         Structures
-                    </div>
+                    </span>
             </a>
+
+        <a class="imagebutton col-md-3 btn btn-primary" href="{% url 'chemicaldb:structures_main' %}">
+            <div>
+                <img src="{% static 'chemicaldb/powder.png' %}">
+            </div>
+            <span>
+                Substances
+            </span>
+        </a>
 
         <a class="imagebutton  col-md-3 btn btn-primary" href="{% url "chemicaldb:experiments:main" %}">
             <div>
                 <img src="{% static 'chemicaldb/experiments.svg' %}">
             </div>
-            <div>
+            <span>
                 Experiments
-            </div>
+            </span>
         </a>
     </div>
 {% endblock %}

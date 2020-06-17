@@ -18,26 +18,17 @@
 
 {% block javascript%}
     <script>
-        let smiles_input = $('input[name="smiles"]');
-        smiles_input.on("input",function () {
-            $.get(
-                "{% url "chemicaldb:api_smiles_to_image" %}",
-                { type:"svg",
-                    smiles:smiles_input.val()
+        $(function () {
+        $('#id_polymer_structure').search_model_autocomplete({
+            model:"PolymerStructure",
+            value:{
+                pk:{{intital_structure.pk}},
+                text:"{{intital_structure}}",
+                select:function () {
+
                 },
-                function (data) {
-                    $('#smiles_image').empty().append(data)
-                }
-            )
-        });
-        $.get(
-            "{% url "chemicaldb:api_smiles_to_image" %}",
-            { type:"svg",
-                smiles:smiles_input.val()
-            },
-            function (data) {
-                $('#smiles_image').empty().append(data)
             }
-        );
+        });
+        });
     </script>
 {% endblock %}

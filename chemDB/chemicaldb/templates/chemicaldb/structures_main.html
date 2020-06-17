@@ -16,9 +16,9 @@
             <div>
                 <img src="{% static 'chemicaldb/list-searching-variant.svg' %}">
             </div>
-            <div>
+            <span>
                 Browse
-            </div>
+            </span>
         </a>
     </div>
         <hr>
@@ -30,9 +30,9 @@
                     <img src="{{data.image}}" alt="{{ data.title }} image">
                 </div>
             {% endif %}
-                <div>
+                <span>
                     {{data.title}}
-                </div>
+                </span>
             </a>
         {% endfor %}
 

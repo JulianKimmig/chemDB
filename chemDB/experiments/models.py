@@ -65,11 +65,13 @@ class ExperimentRawData(models.Model):
         return "{} ({})".format(self.name, self.experiment)
 
 
-@receiver(models.signals.post_delete, sender=ExperimentRawData)
+@receiver(models.signals.post_delete)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
+    if not issubclass(sender,ExperimentRawData):
+        return
     if instance.raw_data:
-        if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)
+        if os.path.isfile(instance.raw_data.path):
+            os.remove(instance.raw_data.path)
 
 
 class DataTypesChoices(models.TextChoices):

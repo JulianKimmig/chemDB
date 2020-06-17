@@ -6,11 +6,127 @@
 
 {% block content_title %}
     Add polymer structure
-    <form method="post">
-    <div class="form-group">
-        <label>start group</label>
-        <div class="col-md-4" name="starting_group" type="search_model_autocomplete" model="">
+{% endblock %}
+{% block content %}
+    <form method="post" id="structure_form">
+    {%  csrf_token %}
+        <div id="smiles_image">{{ img }}</div>
+        <div id="validation_message">
+            {% if error %}
+                <div class="alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
         </div>
-    </div>
+        <input type="hidden" name="image_format" value="svg">
+        <div class="form-group row">
+            <label class="col-md-2" >start group</label>
+            <div class="col-md-4" id="start_group_lookup" ></div>
+            <div class="col-md-2">
+                <input type="button" class="btn btn-primary" value="new" onclick="new_window_close_on_post('{% url "chemicaldb:chemicaldb_polymers:new_start_end_group" %}')">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-md-2" >end group</label>
+            <div class="col-md-4" id="end_group_lookup" ></div>
+            <div class="col-md-2">
+                <input type="button" class="btn btn-primary" value="new" onclick="new_window_close_on_post('{% url "chemicaldb:chemicaldb_polymers:new_start_end_group" %}')">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-md-2" >repeating unit</label>
+            <div class="col-md-4" id="repeating_unit_lookup" ></div>
+            <div class="col-md-4">
+                <input type="button" class="btn btn-primary" value="new" onclick="new_window_close_on_post('{% url "chemicaldb:chemicaldb_polymers:new_repeating_unit" %}')">
+                <input type="button" class="btn btn-primary" value="add" id="add_repeating_unit_btn">
+            </div>
+        </div>
+        <div class="form-group" id="repeating_units_container">
+        </div>
+        <div class="form-group row">
+            <label class="col-md-2" >Names</label>
+            <div class="col-md-8">
+                <textarea name="names">{{ names }}</textarea>
+            </div>
+        </div>
+        <input type="submit" value="save" class="btn btn-primary">
+
     </form>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        $('#start_group_lookup').search_model_autocomplete(
+            {
+                name:"start_group",
+                model:"StartEndGroup",
+                select:generate_polymer,
+        {% if start_group %}
+                value:{
+                    pk:{{ start_group.pk }},
+                    text:"{{ start_group}}"
+
+                }
+        {% endif %}
+            });
+        $('#end_group_lookup').search_model_autocomplete(
+            {
+                name:"end_group",
+                model:"StartEndGroup",
+                select:generate_polymer,
+                {% if end_group %}
+                    value:{
+                        pk:{{ end_group.pk }},
+                        text:"{{ end_group}}"
+
+                    }
+                {% endif %}
+            });
+        $('#repeating_unit_lookup').search_model_autocomplete(
+            {
+                name:"repeating_unit_select",
+                model:"RepeatingUnit",
+                value:{}
+            });
+
+        function generate_polymer(){
+            $.get("{% url "chemicaldb:api:chemicaldb_polymers:structure_checker" %}",
+                $('#structure_form').serialize(),
+                function (data) {
+                    let vm = $('#validation_message').empty();
+                    if(data.success) {
+                        $('#smiles_image').empty().append(data.img)
+                    }else{
+                        vm.append('<div class="alert alert-danger" role="alert">\n' +
+                            data.reason +
+                            '</div>')
+                    }
+                }
+            )
+        }
+
+        function add_repeating_unit(pk,text){
+            let ru=$('<div class="row"><div>');
+            ru.append('<input name="repeating_unit" type="hidden" value="'+pk+'">');
+            ru.append('<div class="col-md-6"><div class="form-control">'+text+'</div></div>');
+
+            let del_btn=$('<input type="button" class="btn btn-danger" value="remove">');
+            del_btn.click(function () {
+                ru.remove();
+                generate_polymer();
+            });
+            ru.append($('<div class="col-md-2"></div>').append(del_btn));
+            $('#repeating_units_container').append(ru);
+        }
+
+        $('#add_repeating_unit_btn').click(function(){
+            let v = $('#repeating_unit_lookup').search_model_autocomplete("value");
+            if(v.pk === "")
+                return;
+            add_repeating_unit(v.pk,v.text);
+            generate_polymer();
+        });
+
+        {% for repeating_unit in repeating_units %}
+            add_repeating_unit({{ repeating_unit.pk }},"{{ repeating_unit}}");
+        {% endfor %}
+    </script>
 {% endblock %}

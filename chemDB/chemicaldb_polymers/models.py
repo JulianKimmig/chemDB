@@ -1,3 +1,4 @@
+import rdkit
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Row, Column
 from django import forms
@@ -10,7 +11,32 @@ from rdkit.Chem import rdDepictor, MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
 
 from chemDB import settings
-from chemicaldb.models import Structure, Substance, mark_safe, ValidationModel
+from chemicaldb.models import Structure, Substance, mark_safe, ValidationModel, VALIDATION_IDENTIFIER, ValidationError, \
+    SubstanceProperty
+from chemicaldb.services import mol_to_image_mol
+
+
+def _validate_repeating_units(structure):
+    mol = structure.get_mol()
+    if mol is None:
+        raise ValidationError("generated mol is None")
+    assert rdkit.Chem.Descriptors.NumRadicalElectrons(mol) >= 2, "repeating units need at least two radicals"
+    valid = True
+    return valid
+
+
+def _validate_start_end_groups(structure):
+    mol = structure.get_mol()
+    if mol is None:
+        raise ValidationError("generated mol is None")
+    assert rdkit.Chem.Descriptors.NumRadicalElectrons(mol) >= 1, "Start and end groups need at least one radical"
+    valid = True
+    return valid
+
+
+VALIDATION_REPEATING_UNIT = "repeating_unit_validation", _validate_repeating_units
+VALIDATION_START_END_GROUP = "start_end_group_validation", _validate_start_end_groups
+
 
 class PolymerStructureType(models.TextChoices):
     LINEAR = 'LINEAR', "linear"
@@ -18,27 +44,53 @@ class PolymerStructureType(models.TextChoices):
     NETWORK = 'NETWORK', "network"
 
 
-class PolymerStructure(Structure):
-    big_smiles = models.CharField(max_length=200, null=True, blank=True)
+class StartEndGroup(Structure):
 
     def __init__(self, *args, **kwargs):
-        self._meta.get_field('iso_smiles').default = False
         super().__init__(*args, **kwargs)
+        self.validity_checks.update({
+            VALIDATION_START_END_GROUP[0]: VALIDATION_START_END_GROUP[1]
+        })
+        del self.validity_checks[VALIDATION_IDENTIFIER[0]]
 
-    def structure_image(self):
-        try:
-            mol = MolFromSmiles(self.smiles * 4)
-            # mc = Chem.Mol(mol.ToBinary())
-            if not mol.GetNumConformers():
-                rdDepictor.Compute2DCoords(mol)
-            drawer = rdMolDraw2D.MolDraw2DSVG(200, 200)
-            drawer.DrawMolecule(mol)
-            drawer.FinishDrawing()
-            svg = drawer.GetDrawingText()
-            return mark_safe(svg)
-        except:
-            return ""
+    def structure_image_field(self,size=200):
+        mol = self.create_mol(with_chain=True)
+        if mol is None:
+            raise ValidationError("cannot get mol for molecule")
+        return mark_safe(mol_to_image_mol(mol, "svg",size=size))
 
+    def create_mol(self, smiles=None, with_chain=False):
+        if smiles is None:
+            smiles = self.smiles
+        if with_chain:
+            smiles += "[*]"
+        return super().create_mol(smiles=smiles)
+
+
+class RepeatingUnit(Structure):
+    big_smiles = models.CharField(max_length=200, null=True, blank=True)
+    SMILES_INFO = "smiles should contain at least two radicals in the form of [*]"
+
+    def structure_image_field(self,size=200):
+        mol = self.create_mol(with_chain=True)
+        if mol is None:
+            raise ValidationError("cannot get mol for molecule")
+        return mark_safe(mol_to_image_mol(mol, "svg",size=size))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validity_checks.update({
+            VALIDATION_REPEATING_UNIT[0]: VALIDATION_REPEATING_UNIT[1]
+        })
+        del self.validity_checks[VALIDATION_IDENTIFIER[0]]
+
+    def create_mol(self, smiles=None, n=4, with_chain=False):
+        if smiles is None:
+            smiles = self.smiles
+        smiles = smiles * n
+        if with_chain:
+            smiles = "[*]" + smiles + "[*]"
+        return super().create_mol(smiles=smiles)
 
 class MonomerDistribution(models.TextChoices):
     GRADIENT = 'GRADIENT', "gradient"
@@ -49,31 +101,51 @@ class MonomerDistribution(models.TextChoices):
 
 MonomerDistribution.max_length = 12
 
-class StartEndGroup(ValidationModel):
-    structure = models.ForeignKey(Structure,on_delete=models.CASCADE)
 
-    def __str__(self):
-        return str(self.structure)
+class PolymerStructure(RepeatingUnit):
+    repeating_units = models.ManyToManyField(RepeatingUnit, related_name="repeating_units")
 
-class RepeatingUnit(ValidationModel):
-    structure = models.ForeignKey(Structure,on_delete=models.CASCADE)
+    terminal_start_group = models.ForeignKey(StartEndGroup, on_delete=models.SET_NULL, null=True,
+                                             related_name="as_polymer_startgroup", blank=True)
+    terminal_end_group = models.ForeignKey(StartEndGroup, on_delete=models.SET_NULL, null=True,
+                                           related_name="as_polymer_endgroup", blank=True)
 
-    def __str__(self):
-        return str(self.structure)
-
-
-class Polymer(Substance):
-    polymer_structure = models.ForeignKey(PolymerStructure, on_delete=models.CASCADE, related_name="polymer_structure")
-    polymer_structure_type = models.CharField(max_length=16, choices=PolymerStructureType.choices,
-                                              default=PolymerStructureType.LINEAR)
-    monomers = models.ManyToManyField(RepeatingUnit, through='Monomers')
     monomer_distribution = models.CharField(max_length=MonomerDistribution.max_length,
                                             choices=MonomerDistribution.choices,
                                             default=MonomerDistribution.STATISTICAL)
-    distribution_parameter = models.FloatField(default=1)
-    start_group = models.ForeignKey(StartEndGroup, on_delete=models.SET_NULL, null=True,
-                                    related_name="as_polymer_startgroup",blank=True)
-    end_group = models.ForeignKey(StartEndGroup, on_delete=models.SET_NULL, null=True, related_name="as_polymer_endgroup",blank=True)
+
+    polymer_structure_type = models.CharField(max_length=16, choices=PolymerStructureType.choices,
+                                              default=PolymerStructureType.LINEAR)
+
+
+    def __init__(self, *args, **kwargs):
+        self._meta.get_field('iso_smiles').default = False
+        super().__init__(*args, **kwargs)
+        del self.validity_checks[VALIDATION_REPEATING_UNIT[0]]
+
+    def create_mol(self, repeating_units=None, terminal_start_group=None, terminal_end_group=None, with_chain=False):
+        smiles=""
+        if repeating_units is None:
+            repeating_units = list(self.repeating_units.all())
+        if terminal_start_group is None:
+            terminal_start_group = self.terminal_start_group
+        if terminal_end_group is None:
+            terminal_end_group = self.terminal_end_group
+
+        if terminal_start_group:
+            smiles+=terminal_start_group.smiles
+        elif with_chain:
+            smiles+="[*]"
+
+        for ru in repeating_units:
+            smiles+=ru.smiles
+
+        if terminal_end_group:
+            smiles+=terminal_end_group.smiles
+        elif with_chain:
+            smiles+="[*]"
+
+        return super().create_mol(smiles=smiles,n=1)
 
 
 class StartEndGroupForm(forms.ModelForm):
@@ -86,68 +158,20 @@ def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
 
 
-class Monomers(models.Model):
-    polymer = models.ForeignKey(Polymer, on_delete=models.CASCADE, related_name="p")
-    monomer = models.ForeignKey(RepeatingUnit, on_delete=models.CASCADE, )
-    repeating_units = models.CharField(max_length=16, choices=MonomerDistribution.choices,
-                                       default=MonomerDistribution.STATISTICAL)
+class Polymer(Substance):
+    polymer_structure = models.ForeignKey(PolymerStructure, on_delete=models.CASCADE, related_name="polymer_structure")
 
+class PolymerPropertie(SubstanceProperty):
+    substance = models.ForeignKey(Polymer, on_delete=models.CASCADE)
 
-
-class RelatedFieldWidgetCanAdd(widgets.SelectMultiple):
-
-    def __init__(self, related_model, related_url=None, *args, **kw):
-
-        super(RelatedFieldWidgetCanAdd, self).__init__(*args, **kw)
-
-        if not related_url:
-            rel_to = related_model
-            info = (rel_to._meta.app_label, rel_to._meta.object_name.lower())
-            related_url = 'admin:%s_%s_add' % info
-
-        # Be careful that here "reverse" is not allowed
-        self.related_url = related_url
-
-    def render(self, name, value, *args, **kwargs):
-        self.related_url = reverse(self.related_url)
-        output = [super(RelatedFieldWidgetCanAdd, self).render(name, value, *args, **kwargs)]
-        output.append('<a href="%s" class="add-another" id="add_id_%s" onclick="return showAddAnotherPopup(this);"> ' % \
-                      (self.related_url, name))
-        output.append('<img src="%sadmin/img/icon_addlink.gif" width="10" height="10" alt="%s"/></a>' % (settings.STATIC_URL, 'Add Another'))
-        return mark_safe(''.join(output))
-
-class NewPolymerForm(forms.ModelForm):
-
-    code_prefix = forms.CharField(initial="hello",
-                                  disabled=True,
-                                  label="Prefix",
-                                  required=False,
-
-                             )
     class Meta:
-        model = Polymer
-        fields = ['name','code','polymer_structure_type','monomer_distribution','distribution_parameter','start_group','end_group']
+        abstract = True
 
-    def __init__(self, chem_db_user, changeable=False, *args, **kwargs):
+class GlasTransition(PolymerPropertie):
+    value = models.PositiveIntegerField()
 
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        if changeable:
-            self.helper.form_method = 'post'
-            self.helper.add_input(Submit('submit', 'save'))
+class NumbeAverageMolarMass(PolymerPropertie):
+    value = models.PositiveIntegerField()
 
-        self.fields['code_prefix'].initial=chem_db_user.get_prefix()
-        self.helper.layout = Layout(
-            'name',
-            Row(
-                Column(
-                    'code_prefix',
-                    css_class='form-group col-md-2 mb-0'),
-                Column(
-                    'code', css_class='form-group col-md-10 mb-0'),
-                css_class='form-row'
-            ),
-        'polymer_structure_type','monomer_distribution','distribution_parameter','start_group','end_group'
-        )
-#        initial={'owner':chem_db_user.pk,"short_name":}
-#   self.fields['raw_data'] = forms.FileInput()
+class MassAverageMolarMass(PolymerPropertie):
+    value = models.PositiveIntegerField()

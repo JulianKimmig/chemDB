@@ -25,10 +25,30 @@
     border-radius: 20px;
     padding: 10px;
     margin: 4px;
+    height: 200px;
+    width: 200px;
 }
 
 .imagebutton img{
     max-width: 100%;
     max-height: 100%;
 }
+.imagebutton div{
+    max-width: 100%;
+    height: 80%;
+}
+.imagebutton span{
+    width: 100%;
+    height: 20%;
+}
 
+textarea[name="names"] {
+    background-image: linear-gradient(#F1F1F1 50%, #F9F9F9 50%);
+    background-size: 100% 4rem;
+    border: 1px solid #CCC;
+    width: 100%;
+    min-height: 10rem;
+    line-height: 2rem;
+    margin: 0 auto;
+    padding: 4px 8px;
+}

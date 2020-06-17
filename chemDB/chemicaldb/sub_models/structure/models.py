@@ -1,3 +1,5 @@
+import base64
+
 import rdkit
 import rdkit.Chem.Descriptors
 import rdkit.Chem.Draw
@@ -7,19 +9,22 @@ from rdkit.Chem import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
 
 from .. import ChemDbShareModel
-from ...models import ValidationModel
+from ...models import ValidationModel, ValidationError
+from ...services import structure_image, mol_to_image_mol
 
 
 def _validate_structure_identifiers(structure):
     mol = structure.get_mol()
     if mol is None:
-        return False
+        raise ValidationError("generated mol is None")
     valid = True
 
     smiles = rdkit.Chem.MolToSmiles(mol, isomericSmiles=True)
     if structure.smiles:
-        if rdkit.Chem.MolToSmiles(rdkit.Chem.MolFromSmiles(structure.smiles), isomericSmiles=True) != smiles:
+        gen_smiles=rdkit.Chem.MolToSmiles(rdkit.Chem.MolFromSmiles(structure.smiles), isomericSmiles=True)
+        if gen_smiles != smiles:
             valid = False
+            reason = "smiles doesn't match ({}, {})".format(smiles,gen_smiles)
     else:
         structure.smiles = smiles
 
@@ -27,15 +32,19 @@ def _validate_structure_identifiers(structure):
     if structure.standard_inchi:
         if structure.standard_inchi != inchi:
             valid = False
+            reason = "inchi doesn't match"
     else:
         structure.standard_inchi = inchi
 
     ikey = rdkit.Chem.MolToInchiKey(mol)
     if structure.inchi_key:
         if structure.inchi_key != ikey:
+            reason = "inchikey doesn't match"
             valid = False
     else:
         structure.inchi_key = ikey
+    if not valid:
+        raise ValidationError(reason)
     return valid
 
 
@@ -49,6 +58,7 @@ def _validate_structure_mass(structure):
     if structure.molar_mass:
         if structure.molar_mass != mass:
             valid = False
+            raise ValidationError("mass does not match")
     else:
         structure.molar_mass = mass
 
@@ -56,7 +66,10 @@ def _validate_structure_mass(structure):
 
 
 def _validate_structure_mol(structure):
-    return structure.get_mol() is not None
+    if structure.get_mol() is not None:
+        return True
+    else:
+        raise ValidationError("generated mol is None")
 
 
 def _validate_structre_iso_identifier(structure):
@@ -80,6 +93,8 @@ VALIDATION_MASS = "structure_mass", _validate_structure_mass
 class Structure(ValidationModel, ChemDbShareModel):
     PUBLIC_TO_USER = True
     PUBLIC = True
+
+    SMILES_INFO=""
 
     class Meta:
         permissions = (
@@ -108,22 +123,36 @@ class Structure(ValidationModel, ChemDbShareModel):
 
     def get_mol(self):
         if self.mol is None:
-            if self.smiles:
-                self.mol = rdkit.Chem.MolFromSmiles(self.smiles)
-            elif self.standard_inchi:
-                self.mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
+            self.mol = self.create_mol()
+        if self.mol is None:
+            raise ValidationError("cannot generate mol for molecule")
         return self.mol
 
-    def structure_image(self):
-        mol = self.get_mol()
-        # mc = Chem.Mol(mol.ToBinary())
-        if not mol.GetNumConformers():
-            rdDepictor.Compute2DCoords(mol)
-        drawer = rdMolDraw2D.MolDraw2DSVG(200, 200)
-        drawer.DrawMolecule(mol)
-        drawer.FinishDrawing()
-        svg = drawer.GetDrawingText()
-        return mark_safe(svg)
+    def create_mol(self, smiles=None, inchi=None):
+        mol = None
+        if smiles is not None:
+            mol = rdkit.Chem.MolFromSmiles(smiles)
+        if mol is not None:
+            return mol
+        if inchi is not None:
+            mol = rdkit.Chem.MolFromInchi(self.smiles)
+        if mol is not None:
+            return mol
+
+        if self.smiles:
+            mol = rdkit.Chem.MolFromSmiles(self.smiles)
+        elif self.standard_inchi:
+            mol = rdkit.Chem.MolFromInchi(self.standard_inchi)
+        return mol
+
+    def structure_image_field(self,size=200):
+        mol = self.create_mol()
+        if mol is None:
+            raise ValidationError("cannot get mol for molecule")
+        return mark_safe(mol_to_image_mol(mol, "svg",size=size))
+
+    def structure_image_field_small(self):
+        return self.structure_image_field(size=100)
 
     def __str__(self):
         name = self.names.first()
@@ -136,8 +165,13 @@ class Structure(ValidationModel, ChemDbShareModel):
             if name:
                 return "{} ({})".format(self.smiles, name)
             return self.smiles
-        return super().__str__()
 
+        return str(name)
+
+    def get_all_names(self):
+        return [n for n in self.names.values_list("name",flat=True)]
+
+    all_names=property(get_all_names)
 
 class StructureName(models.Model):
     structure = models.ForeignKey(Structure, on_delete=models.CASCADE, related_name="names")

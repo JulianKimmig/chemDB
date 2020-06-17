@@ -20,12 +20,6 @@ class Substance(PolymorphicModel,ValidationModel,ChemDbShareModel):
 
 from .submodels import *
 
-@receiver(pre_save)
-def my_callback(sender, instance: Substance, *args, **kwargs):
-    if not issubclass(sender, Substance):
-        return
-    instance.validate(save=False)
-
 class SimpleSubstance(Substance):
     structure = models.ForeignKey(Structure, on_delete=models.CASCADE)
 

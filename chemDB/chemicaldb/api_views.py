@@ -2,10 +2,11 @@ from functools import partial
 
 import rdkit
 import rdkit.Chem
-import rdkit.Chem.PandasTools
 import rdkit.Chem.Descriptors
-
+import rdkit.Chem.PandasTools
+from django.apps import apps
 from django.db.models import Q
+from django.db.models.base import ModelBase
 from django.http import JsonResponse, HttpResponse
 from rdkit.Chem import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
@@ -14,7 +15,8 @@ from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from chemicaldb.models import Structure, mark_safe
+from chemicaldb.models import Structure, StructureName, ValidationError
+from chemicaldb.services import structure_image, mol_to_image_mol, structure_check
 
 
 class StructureSerializer(serializers.HyperlinkedModelSerializer):
@@ -75,7 +77,7 @@ def _search(query, model, queries, search_fields=None):
     for q in qs:
         obj_query |= q
 
-    return model.objects.filter(obj_query).distinct().all()
+    return model.objects.filter(obj_query)
 
 
 def register_search_model(model, qs=[], fields=[], name=None,return_map=None):
@@ -90,7 +92,6 @@ def register_search_model(model, qs=[], fields=[], name=None,return_map=None):
 
 
 def search(request):
-    print(dict(request.GET))
     query = request.GET.get("q","")
     models = request.GET.get("model")
     search_fields = request.GET.get("sf")
@@ -106,8 +107,14 @@ def search(request):
         for model_name, (model, model_search, model_fields, model_class,return_map) in SEARCHABLE_MODELS.items():
             if model_name in models:
                 model_results = model_search(query, search_fields=search_fields)
-                if return_map:
-                    model_results=[return_map]
+                if issubclass(model,Structure):
+                    named = StructureName.objects.filter(name__icontains=query).values_list('structure', flat=True)
+                    if model == Structure:
+                        model_results = model_results | model.objects.filter(pk__in=named)
+                    else:
+                        model_results = model_results | model.objects.filter(structure_ptr_id__in=named)
+
+                model_results=model_results.distinct().all()
 
                 model_data = [
                     {**{'__name__': model_name, '__class__': model_class, "__str__": str(res), "pk": res.pk},
@@ -139,13 +146,30 @@ class SearchViewSet(APIView):
 router = routers.DefaultRouter()
 router.register(r'structure', StructureViewSet)
 
+def smiles_checker(request):
+    try:
+        smiles = request.GET.get("smiles","").strip()
+        assert smiles is not None, "no smiles found"
+        image_format = request.GET.get("image_format")
+        structure_model = request.GET.get("model","chemicaldb.Structure").split(".")
+        model = apps.get_model(".".join(structure_model[:-1]), structure_model[-1])
+        validate = request.GET.get("validate",True)
+        temp_instance:Structure=model(smiles=smiles)
+        mol=temp_instance.create_mol()
+        return JsonResponse(structure_check(temp_instance,mol=mol,image_format=image_format,validate=validate))
+    except ValidationError as e:
+        return JsonResponse({"success":False,
+                                      "reason":str(e)})
+def smiles_to_image(request):
+    smiles = request.GET.get("smiles")
+    format = request.GET.get("type")
+    validate = request.GET.get("validate")
 
-def smiles_to_image(requests):
-    mol = rdkit.Chem.MolFromSmiles(requests.GET.get("smiles"))
-    #return HttpResponse(str(mol))
-    #mc = Chem.Mol(mol.ToBinary())
+    mol = rdkit.Chem.MolFromSmiles(smiles)
+
     if not mol.GetNumConformers():
         rdDepictor.Compute2DCoords(mol)
+
     drawer = rdMolDraw2D.MolDraw2DSVG(200,200)
     drawer.DrawMolecule(mol)
     drawer.FinishDrawing()

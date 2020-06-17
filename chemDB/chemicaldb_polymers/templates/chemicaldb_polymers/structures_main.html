@@ -14,13 +14,22 @@
     which might be intended to be the same (e.g. PMMA) but because of the nature of polymers are not completely identical
     (e.g. different mass distributions, slight variation in Tg, etc.).
     <div>
+        <div>
+            <a class="imagebutton  col-md-3 btn btn-primary" href="{% url "chemicaldb:chemicaldb_polymers:structure_browse" %}">
+                <div>
+                    <img src="{% static 'chemicaldb/list-searching-variant.svg' %}">
+                </div>
+                <span>
+                    Browse
+                </span>
+            </a>
         <a class="imagebutton  col-md-3 btn btn-primary" href="{% url "chemicaldb:chemicaldb_polymers:new_polymer_structure" %}">
             <div>
                 <img src="{% static 'chemicaldb_polymers/polymer.svg' %}">
             </div>
-            <div>
+            <span>
                 new polymer structure
-            </div>
+            </span>
         </a>
     </div>
 

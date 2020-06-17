@@ -125,7 +125,7 @@
     });
 
     function get_api_search_results(params, callback) {
-        $.get("{% url 'chemicaldb:api_search' %}", params, callback);
+        $.get("{% url 'chemicaldb:api:api_search' %}", params, callback);
     }
 </script>
 

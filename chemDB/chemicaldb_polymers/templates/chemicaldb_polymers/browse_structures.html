@@ -1,0 +1,15 @@
+{% extends 'chemicaldb/base.html' %}
+
+{% block content %}
+<div>
+    <table>
+{% for structure in structures %}
+    <tr>
+    <td>{{ structure.structure_image_field_small }}</td>
+    <td><a href="{% url 'chemicaldb:chemicaldb_polymers:structure' pk=structure.pk%}">{{ structure }}</a></td>
+    </tr>
+    </div>
+{% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'chemicaldb/base.html' %}
+
+{% block content_title %}
+    {{ structure }}
+{%  endblock %}
+{% block content %}
+    {{ structure.structure_image_field }}
+    {% if structure.terminal_start_group %}
+        <div class="row">
+        <div class="col-md-2">Starting group</div>
+            <div class="col-md-4"><a>{{ structure.terminal_start_group }}</a></div>
+            <div class="col-md-4">{{ structure.terminal_start_group.structure_image_field_small }}</div>
+        </div>
+    {% endif %}
+    {% if structure.terminal_end_group %}
+        <div class="row">
+            <div class="col-md-2">Terminal end group</div>
+            <div class="col-md-4"><a>{{ structure.terminal_end_group }}</a></div>
+            <div class="col-md-4">{{ structure.terminal_end_group.structure_image_field_small }}</div>
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-2">Repeating units</div>
+        <div class="col-md-10">
+            {% for ru in structure.repeating_units.all %}
+                <div class="row">
+                    <div class="col-md-4"><a>{{ ru }}</a></div>
+                    <div class="col-md-4">{{ ru.structure_image_field_small }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row">
+        {% if user.chemdbuser %}
+            <a class="btn btn-primary" href="{% url 'chemicaldb:chemicaldb_polymers:new_polymer'%}?structure={{ structure.pk }}">new polymer</a>
+        {% endif %}
+    </div>
+{% endblock %}

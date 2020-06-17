@@ -17,7 +17,7 @@ class StructureAdmin(admin.ModelAdmin):
     inlines = [
         StructureAdminAdminStructureNameInline,
     ]
-    readonly_fields = ["structure_image","valid","iso_smiles"]
+    readonly_fields = ["structure_image_field","valid","iso_smiles"]
 
 admin.site.register(cdb_models.Structure,StructureAdmin)
 

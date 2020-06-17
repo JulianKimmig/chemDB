@@ -131,6 +131,7 @@ $.widget("custom.autocomplete_combobox", {
 });
 
 
+
 $.widget("custom.catcomplete", $.ui.autocomplete, {
     _create: function () {
         this._super();
@@ -188,6 +189,89 @@ function new_window_close_on_post(href, callback = null) {
     return false
 }
 
+$.widget("custom.search_model_autocomplete",{
+    options: {
+        model: null,
+        name: null,
+
+        value:{pk:"",text:""},
+
+        minLength:3,
+
+        // Callbacks
+        select: null,
+    },
+
+    _create: function() {
+        this.element
+            // add a class for theming
+            .addClass( "search_model_autocomplete" );
+
+        this.pk_selector = $('<input class="form-control" type="hidden" name="'+this.options.name+'" value="">')
+            .appendTo( this.element );
+        this.last_selector = $('<input class="form-control" type="text" value="">')
+            .appendTo( this.element );
+        this.input_selector = $('<input class="form-control" type="text" value="">')
+            .appendTo( this.element ).hide();
+        // Bind click events on the changer button to the random method
+        this._on( this.input_selector, {
+            focusout: function () {
+                this.input_selector.hide();
+                this.last_selector.show();
+                if(this.input_selector.val()===""){
+                    this.last_selector.val("");
+                    this.pk_selector.val("");
+                }
+                if(this.options.select)
+                    this.options.select();
+                this.input_selector.val(this.last_selector.val());
+            }.bind(this)
+        });
+
+        this._on( this.last_selector, {
+            focus: function () {
+                this.last_selector.hide();
+                this.input_selector.val(this.last_selector.val());
+                this.input_selector.show();
+                this.input_selector.click();
+                this.input_selector.focus();
+            }.bind(this)
+        });
+
+        this._refresh();
+    },
+    value:function(){
+        return {pk:this.pk_selector.val(),text:this.last_selector.val()};
+    },
+
+    _refresh: function() {
+        searchparams={};
+        if(this.options.model)
+            searchparams.model=this.options.model;
+        this.pk_selector.val(this.options.value.pk);
+        this.input_selector.val(this.options.value.text);
+        this.last_selector.val(this.options.value.text);
+
+        this.input_selector.catcomplete({
+            source: api_search_result(searchparams),
+            minLength: this.options.minLength,
+            select: function (event, ui) {
+                this.last_selector.val(ui.item.label);
+                this.input_selector.val(ui.item.label);
+                this.pk_selector.val(ui.item.value);
+                if(this.options.select)
+                    this.options.select(ui.item);
+                event.preventDefault();
+            }.bind(this)
+        });
+    },
+    _setOptions: function() {
+        // _super and _superApply handle keeping the right this-context
+        this._superApply( arguments );
+        this._refresh();
+    },
+});
+
 $(function () {
     $('div[type="search_model_autocomplete"]').each(function (index,value) {
         let $obj=$(value);
@@ -196,8 +280,12 @@ $(function () {
         let $last = $('<input class="form-control" type="text" id="'+name+'_last" value="">');
         let $input = $('<input class="form-control" type="text" id="'+name+'_input" value="" style="display: none">');
 
+        let searchparams = {};
+        if($obj.attr("model"))
+            searchparams.model = $obj.attr("model");
+
         $input.catcomplete({
-            source: api_search_result({model: "Substance"}),
+            source: api_search_result(searchparams),
             minLength: 3,
             select: function (event, ui) {
                 $last.val(ui.item.label);
@@ -212,15 +300,37 @@ $(function () {
             $input.val($last.val());
             $input.show();
             $input.click();
-
+            $input.focus();
         });
 
         $input.focusout(function () {
             $input.hide();
             $last.show();
+            if($input.val()===""){
+                $last.val("");
+                $pk.val("");
+            }
             $input.val($last.val());
         });
 
         $obj.append($pk).append($last).append($input);
+    })
+});
+
+$(function () {
+    $('.search_model_autocomplete_input_dummy').each(function () {
+        let ele=$(this);
+        console.log(ele);
+        let newdiv = $(ele.clone().wrap('<div/>').parent().html().replace("<input","<div")+"</div>");
+        ele.replaceWith(newdiv);
+        newdiv.removeClass();
+        let opts = {
+            name:newdiv.attr("name"),
+            value:{pk:newdiv.attr("value"),text:newdiv.attr("text")}
+        };
+        newdiv.removeAttr("name");
+        newdiv.removeAttr("value");
+        newdiv.removeAttr("text");
+        newdiv.search_model_autocomplete(opts)
     })
 });

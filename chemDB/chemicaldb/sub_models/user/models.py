@@ -1,6 +1,9 @@
+import random
+import string
+
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 
 
@@ -79,15 +82,18 @@ class ChemDbShareModel(models.Model):
 
     owner = models.ForeignKey(ChemdbUser, on_delete=models.SET_NULL, null=True,
                               related_name="%(app_label)s_%(class)s_owner")
-    admin = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_admin")
+    admin = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_admin", blank=True)
 
-    can_edit_user = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_can_edit")
-    can_edit_institute = models.ManyToManyField(ChemdbInstitute, related_name="%(app_label)s_%(class)s_edit_institute")
-    can_view_user = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_can_view")
-    can_view_institute = models.ManyToManyField(ChemdbInstitute, related_name="%(app_label)s_%(class)s_view_institute")
+    can_edit_user = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_can_edit", blank=True)
+    can_edit_institute = models.ManyToManyField(ChemdbInstitute, related_name="%(app_label)s_%(class)s_edit_institute",
+                                                blank=True)
+    can_view_user = models.ManyToManyField(ChemdbUser, related_name="%(app_label)s_%(class)s_can_view", blank=True)
+    can_view_institute = models.ManyToManyField(ChemdbInstitute, related_name="%(app_label)s_%(class)s_view_institute",
+                                                blank=True)
 
-    public_to_user = models.BooleanField()
-    public = models.BooleanField()
+    public_to_user = models.BooleanField(default=True)
+    public_to_institute = models.BooleanField(default=True)
+    public = models.BooleanField(default=True)
 
     code = models.CharField(max_length=64)
     code_prefix = models.CharField(max_length=64)
@@ -97,26 +103,43 @@ class ChemDbShareModel(models.Model):
         unique_together = ("code", "code_prefix")
 
     def check_can_view(self, chemdb_user: ChemdbUser):
+        if chemdb_user is None:
+            if self.public:
+                return True
+            else:
+                return False
+        if self.public_to_user:
+            return True
+
         if self.owner == chemdb_user:
             return True
         if self.admin.filter(pk=chemdb_user.pk).exists():
             return True
         if self.can_view_user.filter(pk=chemdb_user.pk).exists():
             return True
-        if self.can_view_institute.filter(pk=chemdb_user.institute.pk).exists():
-            return True
+        if chemdb_user.institute:
+            if self.can_view_institute.filter(pk=chemdb_user.institute.pk).exists():
+                return True
 
         for i in chemdb_user.administrating_institutes.all():
-            if i == self.owner.institute:
-                return True
-            if i.is_parent(self.owner.institute):
-                return True
+            if self.owner:
+                if i == self.owner.institute:
+                    return True
+                if i.is_parent(self.owner.institute):
+                    return True
 
-        for i in self.can_view_institute.all():
-            if i == chemdb_user.institute:
-                return True
-            if i.is_parent(chemdb_user.institute):
-                return True
+        if chemdb_user.institute:
+            if self.public_to_institute:
+                if self.owner.institute == chemdb_user.institute:
+                    return True
+                if self.owner.institute.is_parent(chemdb_user.institute):
+                    return True
+
+            for i in self.can_view_institute.all():
+                if i == chemdb_user.institute:
+                    return True
+                if i.is_parent(chemdb_user.institute):
+                    return True
 
         return False
 
@@ -127,29 +150,49 @@ class ChemDbShareModel(models.Model):
             return True
         if self.can_edit_user.filter(pk=chemdb_user.pk).exists():
             return True
-        if self.can_edit_institute.filter(pk=chemdb_user.institute.pk).exists():
-            return True
+        if chemdb_user.institute:
+            if self.can_edit_institute.filter(pk=chemdb_user.institute.pk).exists():
+                return True
 
         for i in chemdb_user.administrating_institutes.all():
-            if i == self.owner.institute:
-                return True
-            if i.is_parent(self.owner.institute):
-                return True
+            if self.owner:
+                if i == self.owner.institute:
+                    return True
+                if i.is_parent(self.owner.institute):
+                    return True
 
-        for i in self.can_edit_institute.all():
-            if i == chemdb_user.institute:
-                return True
-            if i.is_parent(chemdb_user.institute):
-                return True
+        if chemdb_user.institute:
+            for i in self.can_edit_institute.all():
+                if i == chemdb_user.institute:
+                    return True
+                if i.is_parent(chemdb_user.institute):
+                    return True
 
         return False
+
+    @classmethod
+    def create_new_chemdbshare(cls, chemdb_user, public=None, public_to_user=None, *args,
+                               **kwargs):
+
+        if public is None:
+            public = cls.PUBLIC
+        if public_to_user is None:
+            public_to_user = cls.PUBLIC_TO_USER
+
+        kwargs.update({'owner': chemdb_user, 'public_to_user': public_to_user, 'public': public,
+                       'code_prefix': chemdb_user.get_prefix()})
+        if "code" not in kwargs:
+            kwargs["code"] = ''.join(random.choice(string.ascii_letters) for _ in range(10))
+
+        obj = cls.objects.create(*args, **kwargs)
+        return obj
 
     def __str__(self):
         return "{}_{}".format(self.code_prefix, self.code)
 
 
 @receiver(pre_save)
-def code_checker(sender, instance: ChemDbShareModel, *args, **kwargs):
+def share_pre_save(sender, instance: ChemDbShareModel, *args, **kwargs):
     if not issubclass(sender, ChemDbShareModel):
         return
     if instance.owner:
@@ -158,3 +201,19 @@ def code_checker(sender, instance: ChemDbShareModel, *args, **kwargs):
         instance.public_to_user = instance.PUBLIC_TO_USER
     if instance.public is None:
         instance.public = instance.PUBLIC
+
+
+@receiver(post_save)
+def share_post_save(sender, instance: ChemDbShareModel, created, *args, **kwargs):
+    if not issubclass(sender, ChemDbShareModel):
+        return
+
+    if created:
+        if instance.owner:
+            chemdb_user = instance.owner
+            instance.admin.add(chemdb_user)
+            instance.can_edit_user.add(chemdb_user)
+            instance.can_view_user.add(chemdb_user)
+            if chemdb_user.institute and instance.public_to_institute:
+                instance.can_view_institute.add(chemdb_user.institute)
+            instance.save()

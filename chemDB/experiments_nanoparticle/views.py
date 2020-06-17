@@ -92,14 +92,12 @@ class batch_particle_creation(View):
                     step = "Nanoparticle"
                     nanoparticle = Nanoparticle.objects.create(
                         name=data['sample_name'],
-                        code=chem_db_user.prefix_string("{}_{}".format(batch_experiment.short_name, row)),
                         z_average=data['z_average'],
                         mean_diameter_by_volume=data['mean_diameter_by_volume'],
                         mean_diameter_by_number=data['mean_diameter_by_number'],
                         mean_diameter_by_intensity=data['mean_diameter_by_intensity'],
                         pdi=data['pdi'],
-                        user=chem_db_user,
-                    )
+                        )
                     nanoparticle.characterizations.add(character)
 
                     nanoparticles.append(nanoparticle)
@@ -316,7 +314,6 @@ class ViewPreparationMethod(View):
         prep_form = NanoparticlePreparationMethodForm(instance=instance,data=request.POST,changeable=instance.owner==chem_db_user)
         if prep_form.is_valid():
             prep_form.save()
-            print("AAA")
         else:
             print(prep_form.errors)
 
