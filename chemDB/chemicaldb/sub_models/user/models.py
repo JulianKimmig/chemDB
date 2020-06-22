@@ -217,3 +217,18 @@ def share_post_save(sender, instance: ChemDbShareModel, created, *args, **kwargs
             if chemdb_user.institute and instance.public_to_institute:
                 instance.can_view_institute.add(chemdb_user.institute)
             instance.save()
+
+
+@receiver(post_save)
+def institute_user_rights_update(sender, instance: ChemdbInstitute, created, *args, **kwargs):
+    if not issubclass(sender, ChemdbInstitute):
+        return
+
+@receiver(post_save)
+def institute_user_rights_update(sender, instance: ChemdbUser, created, *args, **kwargs):
+    if not issubclass(sender, ChemdbUser):
+        return
+
+    #all institutes and sub institutes
+    instance.institute.get_all_child(include_self=True)
+

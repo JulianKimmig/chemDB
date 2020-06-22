@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    #'haystack',
     'polymorphic',
     'rest_framework',
     'guardian',
@@ -170,6 +171,13 @@ REST_FRAMEWORK = {
 }
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+    },
+}
 
 # import polydeep_base_server.common.settings
 # locals().update(
