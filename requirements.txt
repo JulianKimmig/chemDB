@@ -13,3 +13,4 @@ django-filter  # Filtering support
 Json-Dict
 
 django-polymorphic
+django-haystack
